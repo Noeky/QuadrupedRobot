@@ -1,0 +1,16 @@
+{
+  "body_length": 120,
+  "body_width": 80,
+  "deck_thickness": 3,
+  "hip_x": 43,
+  "hip_y": 54,
+  "thigh_length": 40,
+  "shin_length": 45,
+  "standing_thigh_angle_from_down_deg": 30,
+  "standing_shin_angle_from_down_deg": -30,
+  "provisional_electronics_envelope": [
+    70,
+    50,
+    30
+  ]
+}

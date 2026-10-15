@@ -1,0 +1,10 @@
+{
+  "outer_x": 36.0,
+  "outer_y": 20.0,
+  "thickness": 2.5,
+  "body_x": 22.3,
+  "body_y": 12.5,
+  "clearance_each_side": 0.4,
+  "hole_spacing": 27.7,
+  "hole_diameter": 2.2
+}

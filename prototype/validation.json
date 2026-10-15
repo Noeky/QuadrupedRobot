@@ -1,0 +1,123 @@
+{
+  "parts": {
+    "body": {
+      "quantity": 1,
+      "volume_mm3": 33950.65,
+      "print_bounds_mm": [
+        126.65,
+        90.0,
+        27.5
+      ]
+    },
+    "thigh_left": {
+      "quantity": 2,
+      "volume_mm3": 4475.36,
+      "print_bounds_mm": [
+        41.35,
+        53.64,
+        5.8
+      ]
+    },
+    "thigh_right": {
+      "quantity": 2,
+      "volume_mm3": 4475.36,
+      "print_bounds_mm": [
+        41.35,
+        53.64,
+        5.8
+      ]
+    },
+    "shin": {
+      "quantity": 4,
+      "volume_mm3": 3988.57,
+      "print_bounds_mm": [
+        40.5,
+        56.97,
+        4.5
+      ]
+    },
+    "hip_horn_clamp": {
+      "quantity": 4,
+      "volume_mm3": 741.23,
+      "print_bounds_mm": [
+        26.0,
+        31.86,
+        1.5
+      ]
+    },
+    "knee_horn_clamp": {
+      "quantity": 4,
+      "volume_mm3": 741.23,
+      "print_bounds_mm": [
+        26.0,
+        31.86,
+        1.5
+      ]
+    },
+    "universal_tray": {
+      "quantity": 1,
+      "volume_mm3": 6587.73,
+      "print_bounds_mm": [
+        70.0,
+        50.0,
+        2.0
+      ]
+    }
+  },
+  "static_intersections": [],
+  "sampled_motion_front_left": [
+    {
+      "hip_delta": -15,
+      "knee_delta": -20,
+      "intersections": 0
+    },
+    {
+      "hip_delta": -15,
+      "knee_delta": 0,
+      "intersections": 0
+    },
+    {
+      "hip_delta": -15,
+      "knee_delta": 20,
+      "intersections": 0
+    },
+    {
+      "hip_delta": 0,
+      "knee_delta": -20,
+      "intersections": 0
+    },
+    {
+      "hip_delta": 0,
+      "knee_delta": 0,
+      "intersections": 0
+    },
+    {
+      "hip_delta": 0,
+      "knee_delta": 20,
+      "intersections": 0
+    },
+    {
+      "hip_delta": 15,
+      "knee_delta": -20,
+      "intersections": 0
+    },
+    {
+      "hip_delta": 15,
+      "knee_delta": 0,
+      "intersections": 0
+    },
+    {
+      "hip_delta": 15,
+      "knee_delta": 20,
+      "intersections": 0
+    }
+  ],
+  "motion_intersections": [],
+  "total_printed_volume_mm3": 80323.94,
+  "limitations": [
+    "No physical load/fit verification",
+    "Battery recorded; mounting excluded",
+    "Fasteners and wiring not modeled",
+    "Motion: front-left leg sampled at 9 states; not a continuous sweep or gait verification"
+  ]
+}

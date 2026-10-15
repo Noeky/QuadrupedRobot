@@ -1,0 +1,10 @@
+* text=auto
+*.py text eol=lf
+*.md text eol=lf
+*.json text eol=lf
+*.txt text eol=lf
+*.step text eol=lf
+*.STEP text eol=lf
+*.stl binary
+*.zip binary
+*.png binary

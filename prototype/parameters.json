@@ -1,0 +1,25 @@
+{
+  "body_length": 120.0,
+  "body_width": 80.0,
+  "thigh": 40.0,
+  "shin": 45.0,
+  "hip_x": 43.0,
+  "hip_y": 54.0,
+  "knee_output_offset": 15.0,
+  "mounting_hole_spacing": 27.7,
+  "mount_hole_dia": 2.2,
+  "body_window": [
+    23.1,
+    13.3
+  ],
+  "horn_pocket_side_clearance": 0.2,
+  "horn_pocket_axial_gap": 0.1,
+  "clamp_hole_dia": 2.2,
+  "battery_record_only": {
+    "voltage": 3.7,
+    "capacity_mAh": 800,
+    "model": "603040",
+    "color": "purple",
+    "mount_design": false
+  }
+}

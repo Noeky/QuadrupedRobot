@@ -1,0 +1,50 @@
+{
+  "body.stl": {
+    "triangles": 6556,
+    "nonmanifold_edges": 0,
+    "inconsistent_winding_edges": 0,
+    "degenerate_triangles": 0
+  },
+  "hip_horn_clamp.stl": {
+    "triangles": 2032,
+    "nonmanifold_edges": 0,
+    "inconsistent_winding_edges": 0,
+    "degenerate_triangles": 0
+  },
+  "knee_horn_clamp.stl": {
+    "triangles": 2032,
+    "nonmanifold_edges": 0,
+    "inconsistent_winding_edges": 0,
+    "degenerate_triangles": 0
+  },
+  "shin.stl": {
+    "triangles": 2550,
+    "nonmanifold_edges": 0,
+    "inconsistent_winding_edges": 0,
+    "degenerate_triangles": 0
+  },
+  "thigh_left.stl": {
+    "triangles": 3502,
+    "nonmanifold_edges": 0,
+    "inconsistent_winding_edges": 0,
+    "degenerate_triangles": 0
+  },
+  "thigh_right.stl": {
+    "triangles": 3502,
+    "nonmanifold_edges": 0,
+    "inconsistent_winding_edges": 0,
+    "degenerate_triangles": 0
+  },
+  "universal_tray.stl": {
+    "triangles": 1044,
+    "nonmanifold_edges": 0,
+    "inconsistent_winding_edges": 0,
+    "degenerate_triangles": 0
+  },
+  "servo_fit_coupon.stl": {
+    "triangles": 1048,
+    "nonmanifold_edges": 0,
+    "inconsistent_winding_edges": 0,
+    "degenerate_triangles": 0
+  }
+}
