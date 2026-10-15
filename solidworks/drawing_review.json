@@ -1,0 +1,144 @@
+{
+  "pdf_count": 8,
+  "tolerance_pt": 0.6,
+  "files": [
+    {
+      "file": "装配图_quadruped_prototype.pdf",
+      "page_mm": [
+        594.0,
+        420.0
+      ],
+      "text_spans": 81,
+      "collisions": 2,
+      "worst": [
+        {
+          "area_pt2": 161.75,
+          "a": "材料  PLA    数量  1",
+          "b": "阶 段 标 记",
+          "where": [
+            1394.6,
+            1056.3,
+            1480.0,
+            1068.9
+          ]
+        },
+        {
+          "area_pt2": 72.8,
+          "a": "材料  PLA    数量  1",
+          "b": "重量",
+          "where": [
+            1394.6,
+            1056.3,
+            1480.0,
+            1068.9
+          ]
+        }
+      ]
+    },
+    {
+      "file": "零件图_body.pdf",
+      "page_mm": [
+        420.0,
+        297.0
+      ],
+      "text_spans": 94,
+      "collisions": 0,
+      "worst": []
+    },
+    {
+      "file": "零件图_hip_horn_clamp.pdf",
+      "page_mm": [
+        420.0,
+        297.0
+      ],
+      "text_spans": 78,
+      "collisions": 0,
+      "worst": []
+    },
+    {
+      "file": "零件图_knee_horn_clamp.pdf",
+      "page_mm": [
+        420.0,
+        297.0
+      ],
+      "text_spans": 78,
+      "collisions": 0,
+      "worst": []
+    },
+    {
+      "file": "零件图_shin.pdf",
+      "page_mm": [
+        420.0,
+        297.0
+      ],
+      "text_spans": 81,
+      "collisions": 0,
+      "worst": []
+    },
+    {
+      "file": "零件图_thigh_left.pdf",
+      "page_mm": [
+        420.0,
+        297.0
+      ],
+      "text_spans": 91,
+      "collisions": 0,
+      "worst": []
+    },
+    {
+      "file": "零件图_thigh_right.pdf",
+      "page_mm": [
+        420.0,
+        297.0
+      ],
+      "text_spans": 101,
+      "collisions": 3,
+      "worst": [
+        {
+          "area_pt2": 549.91,
+          "a": "R1.70",
+          "b": "2 X R3.60",
+          "where": [
+            199.9,
+            460.2,
+            228.8,
+            491.9
+          ]
+        },
+        {
+          "area_pt2": 55.04,
+          "a": "30.20",
+          "b": "4",
+          "where": [
+            544.6,
+            -1.1,
+            557.3,
+            29.4
+          ]
+        },
+        {
+          "area_pt2": 48.86,
+          "a": "4.15",
+          "b": "3",
+          "where": [
+            408.2,
+            3.3,
+            420.9,
+            29.4
+          ]
+        }
+      ]
+    },
+    {
+      "file": "零件图_universal_tray.pdf",
+      "page_mm": [
+        420.0,
+        297.0
+      ],
+      "text_spans": 75,
+      "collisions": 0,
+      "worst": []
+    }
+  ],
+  "clean": false
+}

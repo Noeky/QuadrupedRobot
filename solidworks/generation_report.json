@@ -1,0 +1,704 @@
+{
+  "started": "2026-10-15 17:28:38",
+  "stages": [
+    "drawings"
+  ],
+  "drawings": {
+    "body": {
+      "model": "F:\\杨宸大学相关文档\\大学学习\\大二上\\先进制造与机器人实践\\project\\QuadrupedRobot\\solidworks\\parts\\body.SLDPRT",
+      "template": "C:\\ProgramData\\SOLIDWORKS\\SOLIDWORKS 2026\\templates\\gb_a3.drwdot",
+      "views": {
+        "front": {
+          "solidworks_view": "*前视",
+          "name": "工程图视图1",
+          "scale": [
+            1,
+            1
+          ],
+          "outline": [
+            0.0857,
+            0.1741,
+            0.2243,
+            0.2759
+          ]
+        },
+        "top": {
+          "solidworks_view": "*上视",
+          "name": "工程图视图2",
+          "scale": [
+            1,
+            1
+          ],
+          "outline": [
+            0.0857,
+            0.1053,
+            0.2243,
+            0.1447
+          ]
+        },
+        "left": {
+          "solidworks_view": "*左视",
+          "name": "工程图视图3",
+          "scale": [
+            1,
+            1
+          ],
+          "outline": [
+            0.2953,
+            0.1941,
+            0.3347,
+            0.2959
+          ]
+        },
+        "iso": {
+          "solidworks_view": "*等轴测",
+          "name": "工程图视图4",
+          "scale": [
+            1,
+            2
+          ],
+          "outline": [
+            0.2818,
+            0.115,
+            0.3482,
+            0.195
+          ]
+        }
+      },
+      "warnings": [],
+      "autodimension_status": 1,
+      "dimension_count": 27,
+      "note_method": "CreateText2",
+      "title_block": {
+        "identity": "CreateText2",
+        "设计": "CreateText2",
+        "date": "CreateText2",
+        "weight": "CreateText2"
+      },
+      "props": {
+        "Number": "ok(0)",
+        "Description": "ok(0)",
+        "Title": "ok(0)",
+        "Material": "ok(0)",
+        "Quantity": "ok(0)",
+        "Weight": "ok(0)",
+        "Scale": "ok(0)",
+        "Designer": "ok(0)",
+        "DrawnBy": "ok(0)",
+        "Date": "ok(0)",
+        "CompanyName": "ok(0)"
+      },
+      "slddrw": "Model.SaveAs4",
+      "pdf": "Model.SaveAs4"
+    },
+    "thigh_left": {
+      "model": "F:\\杨宸大学相关文档\\大学学习\\大二上\\先进制造与机器人实践\\project\\QuadrupedRobot\\solidworks\\parts\\thigh_left.SLDPRT",
+      "template": "C:\\ProgramData\\SOLIDWORKS\\SOLIDWORKS 2026\\templates\\gb_a3.drwdot",
+      "views": {
+        "front": {
+          "solidworks_view": "*前视",
+          "name": "工程图视图1",
+          "scale": [
+            2,
+            1
+          ],
+          "outline": [
+            0.1077,
+            0.1654,
+            0.2023,
+            0.2846
+          ]
+        },
+        "top": {
+          "solidworks_view": "*上视",
+          "name": "工程图视图2",
+          "scale": [
+            2,
+            1
+          ],
+          "outline": [
+            0.1077,
+            0.1133,
+            0.2023,
+            0.1367
+          ]
+        },
+        "left": {
+          "solidworks_view": "*左视",
+          "name": "工程图视图3",
+          "scale": [
+            2,
+            1
+          ],
+          "outline": [
+            0.3033,
+            0.1854,
+            0.3267,
+            0.3046
+          ]
+        },
+        "iso": {
+          "solidworks_view": "*等轴测",
+          "name": "工程图视图4",
+          "scale": [
+            2,
+            2
+          ],
+          "outline": [
+            0.2924,
+            0.1175,
+            0.3376,
+            0.1925
+          ]
+        }
+      },
+      "warnings": [],
+      "autodimension_status": 1,
+      "dimension_count": 22,
+      "note_method": "CreateText2",
+      "title_block": {
+        "identity": "CreateText2",
+        "设计": "CreateText2",
+        "date": "CreateText2",
+        "weight": "CreateText2"
+      },
+      "props": {
+        "Number": "ok(0)",
+        "Description": "ok(0)",
+        "Title": "ok(0)",
+        "Material": "ok(0)",
+        "Quantity": "ok(0)",
+        "Weight": "ok(0)",
+        "Scale": "ok(0)",
+        "Designer": "ok(0)",
+        "DrawnBy": "ok(0)",
+        "Date": "ok(0)",
+        "CompanyName": "ok(0)"
+      },
+      "slddrw": "Model.SaveAs4",
+      "pdf": "Model.SaveAs4"
+    },
+    "thigh_right": {
+      "model": "F:\\杨宸大学相关文档\\大学学习\\大二上\\先进制造与机器人实践\\project\\QuadrupedRobot\\solidworks\\parts\\thigh_right.SLDPRT",
+      "template": "C:\\ProgramData\\SOLIDWORKS\\SOLIDWORKS 2026\\templates\\gb_a3.drwdot",
+      "views": {
+        "front": {
+          "solidworks_view": "*前视",
+          "name": "工程图视图1",
+          "scale": [
+            2,
+            1
+          ],
+          "outline": [
+            0.1077,
+            0.1654,
+            0.2023,
+            0.2846
+          ]
+        },
+        "top": {
+          "solidworks_view": "*上视",
+          "name": "工程图视图2",
+          "scale": [
+            2,
+            1
+          ],
+          "outline": [
+            0.1077,
+            0.1133,
+            0.2023,
+            0.1367
+          ]
+        },
+        "left": {
+          "solidworks_view": "*左视",
+          "name": "工程图视图3",
+          "scale": [
+            2,
+            1
+          ],
+          "outline": [
+            0.3033,
+            0.1854,
+            0.3267,
+            0.3046
+          ]
+        },
+        "iso": {
+          "solidworks_view": "*等轴测",
+          "name": "工程图视图4",
+          "scale": [
+            2,
+            2
+          ],
+          "outline": [
+            0.2924,
+            0.1175,
+            0.3376,
+            0.1925
+          ]
+        }
+      },
+      "warnings": [],
+      "autodimension_status": 1,
+      "dimension_count": 35,
+      "note_method": "CreateText2",
+      "title_block": {
+        "identity": "CreateText2",
+        "设计": "CreateText2",
+        "date": "CreateText2",
+        "weight": "CreateText2"
+      },
+      "props": {
+        "Number": "ok(0)",
+        "Description": "ok(0)",
+        "Title": "ok(0)",
+        "Material": "ok(0)",
+        "Quantity": "ok(0)",
+        "Weight": "ok(0)",
+        "Scale": "ok(0)",
+        "Designer": "ok(0)",
+        "DrawnBy": "ok(0)",
+        "Date": "ok(0)",
+        "CompanyName": "ok(0)"
+      },
+      "slddrw": "Model.SaveAs4",
+      "pdf": "Model.SaveAs4"
+    },
+    "shin": {
+      "model": "F:\\杨宸大学相关文档\\大学学习\\大二上\\先进制造与机器人实践\\project\\QuadrupedRobot\\solidworks\\parts\\shin.SLDPRT",
+      "template": "C:\\ProgramData\\SOLIDWORKS\\SOLIDWORKS 2026\\templates\\gb_a3.drwdot",
+      "views": {
+        "front": {
+          "solidworks_view": "*前视",
+          "name": "工程图视图1",
+          "scale": [
+            2,
+            1
+          ],
+          "outline": [
+            0.1086,
+            0.1621,
+            0.2014,
+            0.2879
+          ]
+        },
+        "top": {
+          "solidworks_view": "*上视",
+          "name": "工程图视图2",
+          "scale": [
+            2,
+            1
+          ],
+          "outline": [
+            0.1086,
+            0.1146,
+            0.2014,
+            0.1354
+          ]
+        },
+        "left": {
+          "solidworks_view": "*左视",
+          "name": "工程图视图3",
+          "scale": [
+            2,
+            1
+          ],
+          "outline": [
+            0.3046,
+            0.1821,
+            0.3254,
+            0.3079
+          ]
+        },
+        "iso": {
+          "solidworks_view": "*等轴测",
+          "name": "工程图视图4",
+          "scale": [
+            2,
+            2
+          ],
+          "outline": [
+            0.2932,
+            0.1166,
+            0.3368,
+            0.1934
+          ]
+        }
+      },
+      "warnings": [],
+      "autodimension_status": 1,
+      "dimension_count": 13,
+      "note_method": "CreateText2",
+      "title_block": {
+        "identity": "CreateText2",
+        "设计": "CreateText2",
+        "date": "CreateText2",
+        "weight": "CreateText2"
+      },
+      "props": {
+        "Number": "ok(0)",
+        "Description": "ok(0)",
+        "Title": "ok(0)",
+        "Material": "ok(0)",
+        "Quantity": "ok(0)",
+        "Weight": "ok(0)",
+        "Scale": "ok(0)",
+        "Designer": "ok(0)",
+        "DrawnBy": "ok(0)",
+        "Date": "ok(0)",
+        "CompanyName": "ok(0)"
+      },
+      "slddrw": "Model.SaveAs4",
+      "pdf": "Model.SaveAs4"
+    },
+    "hip_horn_clamp": {
+      "model": "F:\\杨宸大学相关文档\\大学学习\\大二上\\先进制造与机器人实践\\project\\QuadrupedRobot\\solidworks\\parts\\hip_horn_clamp.SLDPRT",
+      "template": "C:\\ProgramData\\SOLIDWORKS\\SOLIDWORKS 2026\\templates\\gb_a3.drwdot",
+      "views": {
+        "front": {
+          "solidworks_view": "*前视",
+          "name": "工程图视图1",
+          "scale": [
+            2,
+            1
+          ],
+          "outline": [
+            0.1231,
+            0.1872,
+            0.1869,
+            0.2628
+          ]
+        },
+        "top": {
+          "solidworks_view": "*上视",
+          "name": "工程图视图2",
+          "scale": [
+            2,
+            1
+          ],
+          "outline": [
+            0.1231,
+            0.1176,
+            0.1869,
+            0.1324
+          ]
+        },
+        "left": {
+          "solidworks_view": "*左视",
+          "name": "工程图视图3",
+          "scale": [
+            2,
+            1
+          ],
+          "outline": [
+            0.3076,
+            0.2072,
+            0.3224,
+            0.2828
+          ]
+        },
+        "iso": {
+          "solidworks_view": "*等轴测",
+          "name": "工程图视图4",
+          "scale": [
+            2,
+            2
+          ],
+          "outline": [
+            0.2993,
+            0.1304,
+            0.3307,
+            0.1796
+          ]
+        }
+      },
+      "warnings": [],
+      "autodimension_status": 1,
+      "dimension_count": 13,
+      "note_method": "CreateText2",
+      "title_block": {
+        "identity": "CreateText2",
+        "设计": "CreateText2",
+        "date": "CreateText2",
+        "weight": "CreateText2"
+      },
+      "props": {
+        "Number": "ok(0)",
+        "Description": "ok(0)",
+        "Title": "ok(0)",
+        "Material": "ok(0)",
+        "Quantity": "ok(0)",
+        "Weight": "ok(0)",
+        "Scale": "ok(0)",
+        "Designer": "ok(0)",
+        "DrawnBy": "ok(0)",
+        "Date": "ok(0)",
+        "CompanyName": "ok(0)"
+      },
+      "slddrw": "Model.SaveAs4",
+      "pdf": "Model.SaveAs4"
+    },
+    "knee_horn_clamp": {
+      "model": "F:\\杨宸大学相关文档\\大学学习\\大二上\\先进制造与机器人实践\\project\\QuadrupedRobot\\solidworks\\parts\\knee_horn_clamp.SLDPRT",
+      "template": "C:\\ProgramData\\SOLIDWORKS\\SOLIDWORKS 2026\\templates\\gb_a3.drwdot",
+      "views": {
+        "front": {
+          "solidworks_view": "*前视",
+          "name": "工程图视图1",
+          "scale": [
+            2,
+            1
+          ],
+          "outline": [
+            0.1231,
+            0.1872,
+            0.1869,
+            0.2628
+          ]
+        },
+        "top": {
+          "solidworks_view": "*上视",
+          "name": "工程图视图2",
+          "scale": [
+            2,
+            1
+          ],
+          "outline": [
+            0.1231,
+            0.1176,
+            0.1869,
+            0.1324
+          ]
+        },
+        "left": {
+          "solidworks_view": "*左视",
+          "name": "工程图视图3",
+          "scale": [
+            2,
+            1
+          ],
+          "outline": [
+            0.3076,
+            0.2072,
+            0.3224,
+            0.2828
+          ]
+        },
+        "iso": {
+          "solidworks_view": "*等轴测",
+          "name": "工程图视图4",
+          "scale": [
+            2,
+            2
+          ],
+          "outline": [
+            0.2993,
+            0.1304,
+            0.3307,
+            0.1796
+          ]
+        }
+      },
+      "warnings": [],
+      "autodimension_status": 1,
+      "dimension_count": 13,
+      "note_method": "CreateText2",
+      "title_block": {
+        "identity": "CreateText2",
+        "设计": "CreateText2",
+        "date": "CreateText2",
+        "weight": "CreateText2"
+      },
+      "props": {
+        "Number": "ok(0)",
+        "Description": "ok(0)",
+        "Title": "ok(0)",
+        "Material": "ok(0)",
+        "Quantity": "ok(0)",
+        "Weight": "ok(0)",
+        "Scale": "ok(0)",
+        "Designer": "ok(0)",
+        "DrawnBy": "ok(0)",
+        "Date": "ok(0)",
+        "CompanyName": "ok(0)"
+      },
+      "slddrw": "Model.SaveAs4",
+      "pdf": "Model.SaveAs4"
+    },
+    "universal_tray": {
+      "model": "F:\\杨宸大学相关文档\\大学学习\\大二上\\先进制造与机器人实践\\project\\QuadrupedRobot\\solidworks\\parts\\universal_tray.SLDPRT",
+      "template": "C:\\ProgramData\\SOLIDWORKS\\SOLIDWORKS 2026\\templates\\gb_a3.drwdot",
+      "views": {
+        "front": {
+          "solidworks_view": "*前视",
+          "name": "工程图视图1",
+          "scale": [
+            1,
+            1
+          ],
+          "outline": [
+            0.1141,
+            0.1941,
+            0.1959,
+            0.2559
+          ]
+        },
+        "top": {
+          "solidworks_view": "*上视",
+          "name": "工程图视图2",
+          "scale": [
+            1,
+            1
+          ],
+          "outline": [
+            0.1141,
+            0.1181,
+            0.1959,
+            0.1319
+          ]
+        },
+        "left": {
+          "solidworks_view": "*左视",
+          "name": "工程图视图3",
+          "scale": [
+            1,
+            1
+          ],
+          "outline": [
+            0.3081,
+            0.2141,
+            0.3219,
+            0.2759
+          ]
+        },
+        "iso": {
+          "solidworks_view": "*等轴测",
+          "name": "工程图视图4",
+          "scale": [
+            1,
+            2
+          ],
+          "outline": [
+            0.2963,
+            0.1315,
+            0.3337,
+            0.1785
+          ]
+        }
+      },
+      "warnings": [],
+      "autodimension_status": 1,
+      "dimension_count": 9,
+      "note_method": "CreateText2",
+      "title_block": {
+        "identity": "CreateText2",
+        "设计": "CreateText2",
+        "date": "CreateText2",
+        "weight": "CreateText2"
+      },
+      "props": {
+        "Number": "ok(0)",
+        "Description": "ok(0)",
+        "Title": "ok(0)",
+        "Material": "ok(0)",
+        "Quantity": "ok(0)",
+        "Weight": "ok(0)",
+        "Scale": "ok(0)",
+        "Designer": "ok(0)",
+        "DrawnBy": "ok(0)",
+        "Date": "ok(0)",
+        "CompanyName": "ok(0)"
+      },
+      "slddrw": "Model.SaveAs4",
+      "pdf": "Model.SaveAs4"
+    },
+    "assembly": {
+      "model": "F:\\杨宸大学相关文档\\大学学习\\大二上\\先进制造与机器人实践\\project\\QuadrupedRobot\\solidworks\\assembly\\quadruped_prototype.SLDASM",
+      "template": "C:\\ProgramData\\SOLIDWORKS\\SOLIDWORKS 2026\\templates\\gb_a2.drwdot",
+      "views": {
+        "front": {
+          "solidworks_view": "*前视",
+          "name": "工程图视图1",
+          "scale": [
+            1,
+            1
+          ],
+          "outline": [
+            0.1006,
+            0.2181,
+            0.2594,
+            0.3819
+          ]
+        },
+        "top": {
+          "solidworks_view": "*上视",
+          "name": "工程图视图2",
+          "scale": [
+            1,
+            1
+          ],
+          "outline": [
+            0.1006,
+            0.0905,
+            0.2594,
+            0.2095
+          ]
+        },
+        "left": {
+          "solidworks_view": "*左视",
+          "name": "工程图视图3",
+          "scale": [
+            1,
+            1
+          ],
+          "outline": [
+            0.3405,
+            0.2181,
+            0.4595,
+            0.3819
+          ]
+        },
+        "iso": {
+          "solidworks_view": "*等轴测",
+          "name": "工程图视图4",
+          "scale": [
+            1,
+            2
+          ],
+          "outline": [
+            0.3484,
+            0.0867,
+            0.4516,
+            0.2133
+          ]
+        }
+      },
+      "warnings": [],
+      "note_method": "CreateText2",
+      "title_block": {
+        "identity": "CreateText2",
+        "设计": "CreateText2",
+        "date": "CreateText2",
+        "weight": "CreateText2"
+      },
+      "props": {
+        "Number": "ok(0)",
+        "Description": "ok(0)",
+        "Title": "ok(0)",
+        "Material": "ok(0)",
+        "Quantity": "ok(0)",
+        "Weight": "ok(0)",
+        "Scale": "ok(0)",
+        "Designer": "ok(0)",
+        "DrawnBy": "ok(0)",
+        "Date": "ok(0)",
+        "CompanyName": "ok(0)"
+      },
+      "slddrw": "Model.SaveAs4",
+      "pdf": "Model.SaveAs4"
+    }
+  },
+  "drawings_finished": "17:32:06",
+  "finished": "2026-10-15 17:32:06"
+}
