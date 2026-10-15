@@ -1,8 +1,8 @@
 """Generate dimension reference views from the actual STEP tessellation."""
 import sys
 from pathlib import Path
-ROOT = Path(__file__).resolve().parent
-sys.path.insert(0, str(ROOT / '.cad_runtime'))
+from project_paths import IMAGE_DIR, REFERENCE_DIR
+
 import cadquery as cq
 import matplotlib
 matplotlib.use('Agg')
@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from matplotlib.collections import PolyCollection
 plt.rcParams['font.family'] = 'Microsoft YaHei'
 fig, axs = plt.subplots(2, 3, figsize=(13, 7))
-for row, path in enumerate(ROOT.glob('*.STEP')):
+for row, path in enumerate(REFERENCE_DIR.glob('*.STEP')):
     shape = cq.importers.importStep(str(path)).val()
     verts, tris = shape.tessellate(0.08)
     coords = [(v.x,v.y,v.z) for v in verts]
@@ -23,4 +23,4 @@ for row, path in enumerate(ROOT.glob('*.STEP')):
         ax.set_xlabel('XYZ'[a]+' / mm'); ax.set_ylabel('XYZ'[b]+' / mm'); ax.grid(alpha=0.2)
 fig.suptitle('附件几何参考 · 毫米 · 原始坐标系（非机器人装配姿态）')
 fig.tight_layout()
-fig.savefig(ROOT / '零件尺寸参考.png', dpi=160)
+fig.savefig(IMAGE_DIR / '零件尺寸参考.png', dpi=160)

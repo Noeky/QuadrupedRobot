@@ -1,17 +1,17 @@
 """Parametric PLA mechanical prototype. Physical fit/load validation required."""
 import sys, json, math
 from pathlib import Path
-ROOT=Path(__file__).resolve().parent
-sys.path.insert(0,str(ROOT/'.cad_runtime'))
+from project_paths import CAD_DIR, IMAGE_DIR, REFERENCE_DIR, REPORT_DIR, STEP_DIR, STL_DIR
+
 import cadquery as cq
-OUT=ROOT/'prototype'; OUT.mkdir(exist_ok=True)
+OUT=CAD_DIR
 P=dict(body_length=120.,body_width=80.,thigh=40.,shin=45.,
        hip_x=43.,hip_y=54.,knee_output_offset=15.,
        mounting_hole_spacing=27.7,mount_hole_dia=2.2,
        body_window=[23.1,13.3],horn_pocket_side_clearance=.2,
        horn_pocket_axial_gap=.1,clamp_hole_dia=2.2,
        battery_record_only=dict(voltage=3.7,capacity_mAh=800,model='603040',color='purple',mount_design=False))
-(OUT/'parameters.json').write_text(json.dumps(P,indent=2),encoding='utf-8')
+(REPORT_DIR/'parameters.json').write_text(json.dumps(P,indent=2),encoding='utf-8')
 
 def plane(y, origin=(0,0), direction=(1,0)):
     return cq.Workplane(cq.Plane(origin=(origin[0],y,origin[1]),
@@ -100,13 +100,13 @@ for name,(part,qty) in parts.items():
     # Export each printable part in bed orientation and at nonnegative coordinates.
     printable=shape.rotate((0,0,0),(1,0,0),180 if name=='body' else (0 if name=='universal_tray' else 90))
     bb=printable.BoundingBox(); printable=printable.translate((-bb.xmin,-bb.ymin,-bb.zmin))
-    cq.exporters.export(printable,str(OUT/(name+'.step')))
-    cq.exporters.export(printable,str(OUT/(name+'.stl')),tolerance=.025,angularTolerance=.1)
+    cq.exporters.export(printable,str(STEP_DIR/(name+'.step')))
+    cq.exporters.export(printable,str(STL_DIR/(name+'.stl')),tolerance=.025,angularTolerance=.1)
     stats[name]=dict(quantity=qty,volume_mm3=round(shape.Volume(),2),
                      print_bounds_mm=[round(bb.xlen,2),round(bb.ylen,2),round(bb.zlen,2)])
 
-servo=cq.importers.importStep(str(ROOT/'舵机.STEP')).val().translate((-16.8,-29.8,-6.25))
-horn=cq.importers.importStep(str(ROOT/'舵机转头.STEP')).val().rotate((0,0,0),(1,0,0),180).translate((0,1,0))
+servo=cq.importers.importStep(str(REFERENCE_DIR/'舵机.STEP')).val().translate((-16.8,-29.8,-6.25))
+horn=cq.importers.importStep(str(REFERENCE_DIR/'舵机转头.STEP')).val().rotate((0,0,0),(1,0,0),180).translate((0,1,0))
 hip_horn=horn.rotate((0,0,0),(0,1,0),-120)
 knee_horn=horn.rotate((0,0,0),(0,1,0),-60)
 assy=cq.Assembly(name='PLA_PROTOTYPE_REQUIRES_VALIDATION')
@@ -128,7 +128,7 @@ for hx in [-P['hip_x'],P['hip_x']]:
         for n,s,c in local:
             if sign<0: s=s.mirror('XZ')
             add(prefix+'_'+n,s.translate((hx,sign*P['hip_y'],0)),c)
-assy.export(str(OUT/'quadruped_prototype_assembly.step'))
+assy.export(str(STEP_DIR/'quadruped_prototype_assembly.step'))
 
 # Exact static solid intersection report, excluding zero-volume face contact.
 intersections=[]
@@ -167,7 +167,7 @@ report=dict(parts=stats,static_intersections=intersections,
             sampled_motion_front_left=motion_states,motion_intersections=motion_hits,
             total_printed_volume_mm3=round(sum(s['volume_mm3']*s['quantity'] for s in stats.values()),2),
             limitations=['No physical load/fit verification','Battery recorded; mounting excluded','Fasteners and wiring not modeled','Motion: front-left leg sampled at 9 states; not a continuous sweep or gait verification'])
-(OUT/'validation.json').write_text(json.dumps(report,indent=2),encoding='utf-8')
+(REPORT_DIR/'validation.json').write_text(json.dumps(report,indent=2),encoding='utf-8')
 print(json.dumps(report,indent=2))
 
 import matplotlib
@@ -185,4 +185,4 @@ for name,shape in items:
 ax.set_xlim(-80,90);ax.set_ylim(-85,85);ax.set_zlim(-85,30);ax.set_box_aspect((170,170,115))
 ax.view_init(elev=22,azim=-55);ax.set_xlabel('X / mm');ax.set_ylabel('Y / mm');ax.set_zlabel('Z / mm')
 ax.set_title('无传感器四足机器人 · PLA原型\n蓝色：附件舵机；橙色：腿；灰色：主体；绿色：通用主板托盘\n电池安装未设计；紧固件/线缆未显示；需单腿试装验证')
-fig.tight_layout();fig.savefig(OUT/'原型装配预览.png',dpi=170)
+fig.tight_layout();fig.savefig(IMAGE_DIR/'原型装配预览.png',dpi=170)

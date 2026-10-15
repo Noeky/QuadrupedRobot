@@ -2,9 +2,9 @@
 import struct,json
 from pathlib import Path
 from collections import Counter
-ROOT=Path(__file__).resolve().parent
+from project_paths import COUPON_DIR, REPORT_DIR, STL_DIR
 out={}
-for path in list((ROOT/'prototype').glob('*.stl'))+[ROOT/'output/servo_fit_coupon.stl']:
+for path in list(STL_DIR.glob('*.stl'))+[COUPON_DIR/'servo_fit_coupon.stl']:
     raw=path.read_bytes();n=struct.unpack_from('<I',raw,80)[0]
     assert len(raw)==84+50*n,path
     edges=Counter();directed=Counter();degenerate=0
@@ -18,5 +18,5 @@ for path in list((ROOT/'prototype').glob('*.stl'))+[ROOT/'output/servo_fit_coupo
     winding=sum(directed[(a,b)]!=directed[(b,a)] for a,b in edges)
     out[path.name]=dict(triangles=n,nonmanifold_edges=bad,inconsistent_winding_edges=winding,degenerate_triangles=degenerate)
     assert not (bad or winding or degenerate),(path.name,out[path.name])
-(ROOT/'prototype/stl_validation.json').write_text(json.dumps(out,indent=2),encoding='utf-8')
+(REPORT_DIR/'stl_validation.json').write_text(json.dumps(out,indent=2),encoding='utf-8')
 print(json.dumps(out,indent=2))

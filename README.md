@@ -4,7 +4,7 @@
 
 本项目设计并制作一台使用 8 个舵机的四足机器人。首版不安装外部传感器，每条腿配置髋部与膝部两个舵机，目标是实现平整地面上的直线行走与转弯。
 
-![机械原型预览](prototype/原型装配预览.png)
+![机械原型预览](docs/images/原型装配预览.png)
 
 ## 当前进度
 
@@ -29,33 +29,54 @@
 
 两自由度腿的转弯拟通过左右腿的步幅差异及足端滑移实现，实际效果和稳定性需实机验证。
 
-## 文件导航
+## 目录结构
 
-|路径|内容|
+```text
+QuadrupedRobot/
+├── scripts/                 # 建模、预览、检查与打包脚本
+├── hardware/
+│   ├── reference/           # 舵机、转头的原始 STEP 与参考网格
+│   └── electronics/         # 原理图与 PCB 工程资料
+├── cad/
+│   ├── prototype/
+│   │   ├── step/            # 当前装配与逐件 CAD
+│   │   └── stl/             # 当前逐件打印模型
+│   └── fit_coupon/          # 舵机安装配合试片
+├── docs/
+│   ├── images/              # 装配预览、尺寸图与连接示意
+│   └── reports/             # 参数记录、几何与网格检查结果
+├── archive/layout/          # 早期布局草案，非当前打印模型
+├── releases/                # 按当前目录结构生成的完整压缩包
+├── requirements.txt
+└── README.md
+```
+
+|入口|内容|
 |---|---|
-|[prototype/](prototype/)|当前机械原型、逐件打印文件、预览与检查报告|
-|[整机装配 STEP](prototype/quadruped_prototype_assembly.step)|含舵机和原装转头参考体的装配模型|
-|[打印与装配说明](prototype/打印与装配说明.md)|打印数量、建议方向、装配顺序及验证边界|
-|[转头连接说明](prototype/转头连接说明.png)|转头形状与连接层次示意|
-|[output/](output/)|早期布局草案与舵机配合试片；布局线段不可作为承力腿打印|
-|[build_prototype.py](build_prototype.py)|当前机械原型生成脚本|
-|[重新生成说明](重新生成说明.md)|建模环境与执行方法|
-|[设计方案](设计方案.md)|需求、方案记录与载荷示例|
-|[舵机.STEP](舵机.STEP)、[舵机转头.STEP](舵机转头.STEP)|用户提供的几何参考|
-|[6. 原理图与pcb图.zip](6.%20原理图与pcb图.zip)|现有原理图及 PCB 工程资料，尚未与机械安装接口完成适配|
-|[完整原型包](QuadrupedRobot_PLA_Prototype.zip)|当前机械原型及相关说明的打包副本|
+|[整机装配 STEP](cad/prototype/step/quadruped_prototype_assembly.step)|含舵机和原装转头参考体的装配模型|
+|[逐件 STL](cad/prototype/stl/)|当前可用于试装打印的零件|
+|[安装配合试片](cad/fit_coupon/)|建议先打印的接口验证件|
+|[打印与装配说明](docs/打印与装配说明.md)|打印数量、方向、装配顺序及验证边界|
+|[转头连接说明](docs/images/转头连接说明.png)|转头形状与连接层次|
+|[设计方案](docs/设计方案.md)|需求、方案历史与载荷示例|
+|[重新生成说明](docs/重新生成说明.md)|建模环境与脚本入口|
+|[验证报告](docs/reports/)|参数、静态碰撞、抽样姿态及网格检查记录|
+|[电子工程资料](hardware/electronics/)|现有原理图及 PCB 工程，尚未完成机械安装适配|
+|[完整原型包](releases/QuadrupedRobot_PLA_Prototype.zip)|源码、CAD、参考资料与文档的打包副本|
 
-`*_reference.stl` 是舵机和转头的参考网格，不是需要打印的机器人零件。STEP 文件可作为导入实体在 SolidWorks 等 CAD 软件中打开，不包含原生 SolidWorks 特征树。
+`hardware/reference/` 中的 `*_reference.stl` 是舵机和转头的参考网格，不需要打印。`archive/layout/` 仅保留历史布局，不能作为承力腿打印。STEP 可作为导入实体在 SolidWorks 等 CAD 软件中打开，不含原生特征树。
 
 ## 重新生成
 
 使用 Python 3.12，在项目目录执行：
 
 ```powershell
-python -m pip install --target .cad_runtime -r cad_requirements.txt
-python build_prototype.py
-python render_prototype.py
-python check_stl.py
+python -m pip install --target .cad_runtime -r requirements.txt
+python scripts/build_prototype.py
+python scripts/render_prototype.py
+python scripts/check_stl.py
 ```
 
-主要参数位于 `build_prototype.py` 开头的 `P` 字典；`prototype/parameters.json` 是生成记录。修改后需重新检查实体连接、干涉和打印配合。本地 `.cad_runtime/` 依赖目录不提交到仓库。
+主要参数位于 `scripts/build_prototype.py` 开头的 `P` 字典；`docs/reports/parameters.json` 是生成记录。修改后需重新检查实体连接、干涉和打印配合。本地 `.cad_runtime/` 依赖目录不提交到仓库。
+
+生成分发包：`python scripts/package_project.py`。脚本使用仓库位置定位输入和输出，不依赖终端当前目录。

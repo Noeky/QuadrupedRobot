@@ -1,8 +1,8 @@
 """Explain the supplied horn and the current prototype's axial stack."""
 import sys
 from pathlib import Path
-ROOT=Path(__file__).resolve().parent
-sys.path.insert(0,str(ROOT/'.cad_runtime'))
+from project_paths import IMAGE_DIR, REFERENCE_DIR
+
 import cadquery as cq
 import matplotlib
 matplotlib.use('Agg')
@@ -11,7 +11,7 @@ from matplotlib.collections import PolyCollection
 from matplotlib.patches import Rectangle
 plt.rcParams['font.family']='Microsoft YaHei'
 fig,axs=plt.subplots(1,2,figsize=(14,6),gridspec_kw={'width_ratios':[1,1.8]})
-horn=cq.importers.importStep(str(ROOT/'舵机转头.STEP')).val()
+horn=cq.importers.importStep(str(REFERENCE_DIR/'舵机转头.STEP')).val()
 ax=axs[0]
 for face in horn.Faces():
     bb=face.BoundingBox()
@@ -47,4 +47,4 @@ ax.set_xlim(-2,43);ax.set_ylim(-29,40);ax.axis('off')
 ax.set_title('② 当前连接方案的分层关系\n转头是舵机与打印腿件之间的连接件')
 fig.suptitle('转头适配说明：当前槽为近似包络，夹持与间隙仍需试装验证',fontsize=15)
 fig.tight_layout()
-fig.savefig(ROOT/'prototype/转头连接说明.png',dpi=170)
+fig.savefig(IMAGE_DIR/'转头连接说明.png',dpi=170)

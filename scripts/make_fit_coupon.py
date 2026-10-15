@@ -1,8 +1,8 @@
 """Generate a non-load-bearing servo ear fit coupon, dimensions in mm."""
 import sys, json
 from pathlib import Path
-ROOT = Path(__file__).resolve().parent
-sys.path.insert(0, str(ROOT / '.cad_runtime'))
+from project_paths import COUPON_DIR
+
 import cadquery as cq
 
 # Print XY flat. Model X becomes coupon X; model Z becomes coupon Y.
@@ -15,7 +15,7 @@ coupon = cq.Workplane('XY').rect(p['outer_x'],p['outer_y']).extrude(p['thickness
 coupon = coupon.faces('>Z').workplane().rect(p['body_x']+2*p['clearance_each_side'],p['body_y']+2*p['clearance_each_side']).cutThruAll()
 coupon = coupon.faces('>Z').workplane().pushPoints([(-p['hole_spacing']/2,0),(p['hole_spacing']/2,0)]).hole(p['hole_diameter'])
 assert coupon.val().isValid() and len(coupon.val().Solids()) == 1
-folder = ROOT / 'output'
+folder = COUPON_DIR
 folder.mkdir(exist_ok=True)
 cq.exporters.export(coupon,str(folder / 'servo_fit_coupon.step'))
 cq.exporters.export(coupon,str(folder / 'servo_fit_coupon.stl'),tolerance=0.02,angularTolerance=0.1)

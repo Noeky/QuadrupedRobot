@@ -1,23 +1,23 @@
 """Provisional envelope assembly, NOT printable mechanical parts or checked design."""
 import sys, json, math
 from pathlib import Path
-ROOT = Path(__file__).resolve().parent
-sys.path.insert(0,str(ROOT / '.cad_runtime'))
+from project_paths import LAYOUT_DIR, REFERENCE_DIR
+
 import cadquery as cq
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 
-folder=ROOT/'output'; folder.mkdir(exist_ok=True)
+folder=LAYOUT_DIR; folder.mkdir(exist_ok=True)
 p=dict(body_length=120,body_width=80,deck_thickness=3,
        hip_x=43,hip_y=54,thigh_length=40,shin_length=45,
        standing_thigh_angle_from_down_deg=30,
        standing_shin_angle_from_down_deg=-30,
        provisional_electronics_envelope=[70,50,30])
 (folder/'layout_parameters.json').write_text(json.dumps(p,indent=2),encoding='utf-8')
-servo=cq.importers.importStep(str(ROOT/'舵机.STEP')).val()
-horn=cq.importers.importStep(str(ROOT/'舵机转头.STEP')).val()
+servo=cq.importers.importStep(str(REFERENCE_DIR/'舵机.STEP')).val()
+horn=cq.importers.importStep(str(REFERENCE_DIR/'舵机转头.STEP')).val()
 assy=cq.Assembly(name='UNVERIFIED_LAYOUT_ONLY')
 deck=cq.Workplane('XY').box(120,80,3).translate((0,0,16)).val()
 assy.add(deck,name='deck_envelope',color=cq.Color(0.45,0.5,0.55,0.5))

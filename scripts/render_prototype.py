@@ -1,15 +1,15 @@
 """Depth-correct CAD preview with VTK; does not change prototype geometry."""
 import sys,json
 from pathlib import Path
-ROOT=Path(__file__).resolve().parent
-sys.path.insert(0,str(ROOT/'.cad_runtime'))
+from project_paths import IMAGE_DIR, REPORT_DIR, STEP_DIR
+
 import cadquery as cq
 import vtk
 from PIL import Image,ImageDraw,ImageFont
-OUT=ROOT/'prototype'
-assy=cq.importers.importStep(str(OUT/'quadruped_prototype_assembly.step')).val()
+OUT=IMAGE_DIR
+assy=cq.importers.importStep(str(STEP_DIR/'quadruped_prototype_assembly.step')).val()
 bb=assy.BoundingBox()
-(OUT/'assembly_bounds.json').write_text(json.dumps(dict(size_mm=[round(bb.xlen,2),round(bb.ylen,2),round(bb.zlen,2)],bounds_mm=[round(v,2) for v in [bb.xmin,bb.ymin,bb.zmin,bb.xmax,bb.ymax,bb.zmax]]),indent=2))
+(REPORT_DIR/'assembly_bounds.json').write_text(json.dumps(dict(size_mm=[round(bb.xlen,2),round(bb.ylen,2),round(bb.zlen,2)],bounds_mm=[round(v,2) for v in [bb.xmin,bb.ymin,bb.zmin,bb.xmax,bb.ymax,bb.zmax]]),indent=2))
 renderer=vtk.vtkRenderer();renderer.SetBackground(.97,.98,.99)
 for shape in assy.Solids():
     verts,tris=shape.tessellate(.12,.2)
