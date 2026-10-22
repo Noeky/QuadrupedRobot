@@ -1,0 +1,8 @@
+board_mount.SLDPRT	1 solid	26 features	0 feature errors
+body.SLDPRT	1 solid	80 features	0 feature errors
+hip_horn_clamp.SLDPRT	1 solid	34 features	0 feature errors
+knee_horn_clamp.SLDPRT	1 solid	34 features	0 feature errors
+shin.SLDPRT	1 solid	36 features	0 feature errors
+thigh_left.SLDPRT	1 solid	44 features	0 feature errors
+thigh_right.SLDPRT	1 solid	44 features	0 feature errors
+ultrasonic_bracket.SLDPRT	1 solid	32 features	0 feature errors

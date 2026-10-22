@@ -8,3 +8,6 @@
 *.stl binary
 *.zip binary
 *.png binary
+*.SLDPRT binary
+*.SLDASM binary
+*.SLDDRW binary

@@ -1,0 +1,123 @@
+{
+  "parts": {
+    "body": {
+      "quantity": 1,
+      "valid": true,
+      "solids": 1,
+      "volume_mm3": 37124.49,
+      "triangles": 3652,
+      "mesh_closed_consistent": true,
+      "print_bounds_mm": [
+        127.65,
+        91.5,
+        27.5
+      ],
+      "sha256": "1175f80a1e0881f5dcd4ffcb1526e8d1a610152631114202000312791c350884"
+    },
+    "thigh_left": {
+      "quantity": 2,
+      "valid": true,
+      "solids": 1,
+      "volume_mm3": 8385.94,
+      "triangles": 2418,
+      "mesh_closed_consistent": true,
+      "print_bounds_mm": [
+        43.35,
+        55.641,
+        9.858
+      ],
+      "sha256": "8cb4c9487ddb58d6643090cbc092206d07908450582e59ae49ef743ffa8b642d"
+    },
+    "thigh_right": {
+      "quantity": 2,
+      "valid": true,
+      "solids": 1,
+      "volume_mm3": 8385.82,
+      "triangles": 2418,
+      "mesh_closed_consistent": true,
+      "print_bounds_mm": [
+        43.35,
+        55.641,
+        9.858
+      ],
+      "sha256": "138a3791ac113b8f493d2b0f8e0b135e6d541c8a96370846f72470f6e5a9fa3c"
+    },
+    "shin": {
+      "quantity": 4,
+      "valid": true,
+      "solids": 1,
+      "volume_mm3": 6134.48,
+      "triangles": 2342,
+      "mesh_closed_consistent": true,
+      "print_bounds_mm": [
+        42.5,
+        58.971,
+        5.508
+      ],
+      "sha256": "a948de770bb58444b6ff8c1c7c3a3b77fa916875457897826356d6acf8f0578d"
+    },
+    "hip_horn_clamp": {
+      "quantity": 4,
+      "valid": true,
+      "solids": 1,
+      "volume_mm3": 1319.05,
+      "triangles": 2302,
+      "mesh_closed_consistent": true,
+      "print_bounds_mm": [
+        30.0,
+        37.321,
+        2.15
+      ],
+      "sha256": "9bb53eb9bedca1d7fb8d1164e65abbd2a4e0bf41f261f6fe2672f1ae85481901"
+    },
+    "knee_horn_clamp": {
+      "quantity": 4,
+      "valid": true,
+      "solids": 1,
+      "volume_mm3": 1319.05,
+      "triangles": 2306,
+      "mesh_closed_consistent": true,
+      "print_bounds_mm": [
+        30.0,
+        37.321,
+        2.15
+      ],
+      "sha256": "7cfa21df0025084e41661dd53ef766fdc3eefbce054479414bb69d499b06659d"
+    },
+    "board_mount": {
+      "quantity": 1,
+      "valid": true,
+      "solids": 1,
+      "volume_mm3": 9435.49,
+      "triangles": 2144,
+      "mesh_closed_consistent": true,
+      "print_bounds_mm": [
+        68.0,
+        64.0,
+        3.0
+      ],
+      "sha256": "a90442436217d4d31b577d5b7c5dfd993088773dbcfa0c948f8a277ebfbdd3ea"
+    },
+    "ultrasonic_bracket": {
+      "quantity": 1,
+      "valid": true,
+      "solids": 1,
+      "volume_mm3": 8921.08,
+      "triangles": 1168,
+      "mesh_closed_consistent": true,
+      "print_bounds_mm": [
+        18.0,
+        54.0,
+        54.0
+      ],
+      "sha256": "7aa6ab44079dc5ade494ecc541ed41b0c38975239247add73587551be52768ff"
+    }
+  },
+  "limitations": [
+    "Physical fit and load not tested",
+    "Fasteners, wiring and PCB components not fully modelled",
+    "Assembly components positioned and fixed; no motion mates"
+  ],
+  "assembly_components": 35,
+  "static_intersections_over_0p05_mm3": []
+}
