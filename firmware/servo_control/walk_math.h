@@ -25,8 +25,18 @@ inline void footPath(float phase, unsigned leg, float &x, float &z) {
   z = 65.f;
   if (p < .2f) {
     float t = p / .2f;
-    x = -14.f + 28.f*smoothStep(t);
-    z -= 12.f*16.f*t*t*(1.f-t)*(1.f-t);
+    // Lift first, then advance with the foot kept raised, then lower.
+    // IK flexes the knee during lift and keeps it flexed through the advance.
+    if (t < .25f) {
+      x = -14.f;
+      z -= 12.f*smoothStep(t/.25f);
+    } else if (t < .75f) {
+      x = -14.f + 28.f*smoothStep((t-.25f)/.5f);
+      z -= 12.f;
+    } else {
+      x = 14.f;
+      z -= 12.f*(1.f-smoothStep((t-.75f)/.25f));
+    }
   } else {
     x = 14.f - 28.f*(p-.2f)/.8f;
   }

@@ -111,14 +111,6 @@ public static class RobotRevision {
         Sketch(2,-.1,"Deck_attachment");foreach(double x in new[]{-25.0,25.0})foreach(double y in new[]{-28.0,28.0})Circle(x,y,1.7);
         Finish(3.2,true,"Deck_attachment_M3");Complete("board_mount");
     }
-    static void TestGauge() {
-        New("ultrasonic_hole_gauge");Box(2,0,0,0,54,28,2,"Gauge_plate_2mm");
-        Sketch(2,-.1,"Open_window");Rect(0,0,34,20);Finish(2.2,true,"Open_window");
-        Sketch(2,-.1,"Sensor_slots");foreach(double x in new[]{-21.0,21.0})foreach(double y in new[]{-8.5,8.5})Rect(x,y,4.2,3.6);
-        Finish(2.2,true,"Same_slots_as_sensor_bracket_42x17");model.EditRebuild3();
-        Save(model,Path.Combine(root,"cad/fit_tests/ultrasonic_hole_gauge.SLDPRT"));
-        Save(model,Path.Combine(root,"cad/fit_tests/ultrasonic_hole_gauge.step"));app.CloseDoc(model.GetTitle());
-    }
     static void Sensor() {
         New("ultrasonic_bracket");Box(2,0,0,0,18,54,3,"Foot");
         // x is fore/aft; rear of module faces the open window. Transducers point +X.
@@ -268,7 +260,6 @@ public static class RobotRevision {
         root=directory;app=(ISldWorks)Marshal.GetActiveObject("SldWorks.Application");
         if(action=="Audit"){Audit();return;}
         if(action=="VerifyPropagation"){VerifyPropagation();return;}
-        if(action=="TestGauge"){TestGauge();return;}
         if(action=="UpdateHornSlots"){CloseOwned();Leg("thigh_left",.5,Math.Sqrt(3)/2,40,true);Console.WriteLine("R3 left thigh");Leg("thigh_right",.5,-Math.Sqrt(3)/2,40,true);Console.WriteLine("R3 right thigh");Leg("shin",-.5,Math.Sqrt(3)/2,45,false);Console.WriteLine("R3 shin");Retainer("hip_horn_clamp",.5,Math.Sqrt(3)/2);Retainer("knee_horn_clamp",-.5,Math.Sqrt(3)/2);Console.WriteLine("R3 retainers");int e=0,w=0;var d=app.OpenDoc6(Path.GetFullPath(Path.Combine(root,"cad/current/robot.SLDASM")),2,1,"",ref e,ref w) as IModelDoc2;if(d==null||e!=0)throw new Exception("Assembly refresh failed");d.ForceRebuild3(false);Save(d,Path.Combine(root,"cad/current/robot.SLDASM"));Save(d,Path.Combine(root,"cad/current/robot.step"));app.CloseDoc(d.GetTitle());Audit();return;}
         if(action=="UpdateBoard") {CloseOwned();BoardMount();int e=0,w=0;var d=app.OpenDoc6(Path.GetFullPath(Path.Combine(root,"cad/current/robot.SLDASM")),2,1,"",ref e,ref w) as IModelDoc2;if(d==null||e!=0)throw new Exception("Assembly refresh failed");d.ForceRebuild3(false);Save(d,Path.Combine(root,"cad/current/robot.SLDASM"));Save(d,Path.Combine(root,"cad/current/robot.step"));app.CloseDoc(d.GetTitle());Audit();return;}
         if(action=="Show"){int e=0,w=0;var d=app.OpenDoc6(Path.GetFullPath(Path.Combine(root,"cad/current/robot.SLDASM")),2,1,"",ref e,ref w) as IModelDoc2;if(d==null||e!=0)throw new Exception("Cannot show assembly");app.Visible=true;d.ShowNamedView2("",7);d.ViewZoomtofit2();return;}

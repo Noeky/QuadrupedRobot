@@ -38,5 +38,24 @@ int main() {
   }
   float h,k;
   assert(!legIK(0,100,h,k)); assert(!legIK(0,0,h,k));
+  // Regression: forward transfer must happen ONLY with the foot fully raised
+  // and knee flexed. Lift/lower keep x fixed; verify actual IK knee behavior.
+  float previousK=0;
+  for (int n=0;n<=1000;++n) {
+    float t=n/1000.f, x,z,h,k;
+    footPath(.2f*t,0,x,z);
+    assert(legIK(x,z,h,k));
+    if (t<.25f) {
+      assert(fabsf(x+14.f)<.001f);
+      if (n) assert(k>=previousK-.001f);
+    } else if (t<=.75f) {
+      assert(fabsf(z-53.f)<.001f);
+      assert(k>k0+15.f);
+    } else {
+      assert(fabsf(x-14.f)<.001f);
+      assert(k<=previousK+.001f);
+    }
+    previousK=k;
+  }
   printf("PASS: 40004 leg samples; reference hip %.3f knee %.3f; max deltas %.3f/%.3f deg\n",h0,k0,maxH,maxK);
 }

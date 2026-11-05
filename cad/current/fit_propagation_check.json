@@ -3,7 +3,7 @@
   "native_check": "fit_propagation_native.tsv",
   "assembly_step_solids": 35,
   "max_component_volume_error_mm3": 7.275957614183426e-12,
-  "whole_and_trial_meshes_identical_for_matching_parts": true,
+  "whole_package_matches_current_stl": true,
   "parts": {
     "body": {
       "quantity": 1,
