@@ -1,53 +1,45 @@
-"""Small R2 fit-test set: real reusable leg parts, optional PCB and sensor gauges."""
+"""R3 horn-slot retest: prioritize one shin and its matching clamp."""
 import hashlib
 import json
 import zipfile
-from pathlib import Path
-from verify_current import ROOT,CURRENT,cq,check_mesh
+from verify_current import ROOT,CURRENT,check_mesh
 
-out=ROOT/'releases/QuadrupedRobot_Fit_Test_R2.zip'
+report=json.loads((CURRENT/'validation.json').read_text(encoding='utf-8'))
+assert report.get('revision')=='R3'
+assert not report['static_intersections_over_0p05_mm3']
+out=ROOT/'releases/QuadrupedRobot_Fit_Test_R3.zip'
 files={}
-for name,qty in [('thigh_left',2),('shin',4),('hip_horn_clamp',4),('knee_horn_clamp',4)]:
-    files[f'01_LEG/{name}_x1.stl']=(CURRENT/'print'/f'{name}_x{qty}.stl').read_bytes()
-files['02_OPTIONAL/board_mount_x1.stl']=(CURRENT/'print/board_mount_x1.stl').read_bytes()
-shape=cq.importers.importStep(str(ROOT/'cad/fit_tests/ultrasonic_hole_gauge.step')).val()
-assert shape.isValid() and len(shape.Solids())==1
-bb=shape.BoundingBox();shape=shape.translate((-bb.xmin,-bb.ymin,-bb.zmin))
-temp=ROOT/'.cad_runtime/tmp/ultrasonic_hole_gauge.stl'
-temp.parent.mkdir(parents=True,exist_ok=True)
-cq.exporters.export(shape,str(temp),tolerance=.025,angularTolerance=.1)
-files['02_OPTIONAL/ultrasonic_hole_gauge_x1.stl']=temp.read_bytes()
-manifest={}
-for name,raw in files.items():
-    manifest[name]={'quantity':1,'triangles':check_mesh(raw),'sha256':hashlib.sha256(raw).hexdigest()}
-notes='''R2 小批试装包（无额外主板支撑柱版本）
+for folder,names in [('01_RETEST',['shin','knee_horn_clamp']),('02_OPTIONAL',['thigh_left','hip_horn_clamp'])]:
+    for name in names:
+        qty=report['parts'][name]['quantity']
+        raw=(CURRENT/'print'/f'{name}_x{qty}.stl').read_bytes()
+        assert hashlib.sha256(raw).hexdigest()==report['parts'][name]['sha256']
+        files[f'{folder}/{name}_R3_x1.stl']=raw
+manifest={name:{'quantity':1,'triangles':check_mesh(raw),'sha256':hashlib.sha256(raw).hexdigest()} for name,raw in files.items()}
+notes='''R3 舵臂槽复测包，每个文件只打印1件。100%比例、毫米，沿用上一轮PLA Basic和0.20mm层高。
 
-每个STL只含1件，每个文件只打1件，毫米、100%比例。使用实际整机准备采用的PLA Basic、喷嘴和参数。
+先只打01_RETEST：小腿shin和膝压板knee_horn_clamp，各1件。
+槽保留缓渐缩，不是等宽槽：根部宽8.4mm，末端圆角从R1.35增到R2.5mm，避免根部过快收束和尖端过细。
+槽最远端比R2缩短1mm，距轴心18.65mm；槽深仍2.2mm，根部局部仍3.3mm。
+压板接触凸台仍高0.15mm，已缩短并留侧向余量，避免顶住新槽端。通过后可继续用于整机。
 
-优先打印 01_LEG 的4件：
-1. thigh_left_x1：真实左大腿，验证舵机壳体能通过窗口、安装耳落座、螺钉孔对齐。
-2. shin_x1：真实小腿，验证原装舵臂能完整放入凹槽、根部凸起与中央孔不顶住。
-3. hip_horn_clamp_x1：配左大腿的髋压板。
-4. knee_horn_clamp_x1：配小腿的膝压板。
-这4件均直接复制自当前整机打印件，配合通过后可继续用于整机，不是废弃试片。
-检查左大腿上的膝舵机安装窗口，即可先验证这版24×13.2mm窗口和安装耳调节孔；它不能替代最终主体的打印方向与装配检查。
+02_OPTIONAL：左大腿和髋压板各1件，需要验证完整单腿/大腿槽时再打印。
+舵机窗口、耳孔与前一轮相同，不重复打印主板、超声波件，也不需要重打主体。
+旧R2压板接触凸台较长，可能顶住缩短后的槽端，先用R3压板复测，避免误判。
 
-02_OPTIONAL 按需打印：
-- board_mount_x1：当前实际3mm厚主板固定框，没有额外立柱。可直接核对整套已装配主板的四孔、下方接口和固定框是否干涉；通过后可继续装到整机。
-- ultrasonic_hole_gauge_x1：2mm厚平面孔距规，孔中心距42×17mm、孔为4.2×3.6mm，与实际立板一致。
-  只测安装孔和螺钉/垫片是否对齐，不验证立板高度、杜邦线空间或安装刚度，不是整机零件。
-  从模块背面或使用间隔垫片对孔，避免让量规压住背面电子元件。
+打印：4圈墙、5层顶底、35%陀螺填充；压板100%填充。
+STL已落床：腿的平整背面朝下、槽口朝上；压板平整背面朝下、凸台朝上。
+小腿与压板先关闭支撑并检查切片；可选大腿需检查安装耳台阶的局部支撑。
 
-建议0.4mm喷嘴、0.20mm层高、4圈墙、5层顶底、35%陀螺填充；两种压板100%填充。
-保持STL方向：腿件平整背面朝下，舵臂槽朝上。大腿可用普通自动支撑，切片检查悬空台阶，避免填满配合槽；小腿、压板及两个平面件先关闭支撑并检查预览。
+冷却、清理毛边后，断电试装：
+1. 舵臂圆根和臂片能否自然完整落入槽内，圆根到臂片连接处是否还卡。
+2. 尖端是否还有一点余量，不能顶住槽端。
+3. 再装配套压板和M2紧固件，确认中央螺钉可安装、根部不被顶起。
+4. 轻拧紧后检查轴向窜动和槽内转动松量；过松或压板不贴合时反馈厚度/间隙及照片。
+小腿压板可备M2×12，以实际螺母、垫片和舵机壳体避让为准，不强拧、不硬塞。
 
-打印后先冷却、去掉毛边再试合。不要用强压硬塞或强拧螺钉掩盖尺寸问题。
-先验证舵臂+腿+压板的组合，再装舵机中央螺钉；使用原装舵臂和原装中心螺钉。
-压板固定用M2螺钉、螺母及小垫片。大腿组合可备M2×16，小腿组合可备M2×12；这是试装起点，以实际垫片/螺母厚度和干涉情况为准。
-主板孔仅Ø2.4mm，使用M2紧固件，不能强穿M3。超声波也用M2和小垫片。
-
-验收：窗口能自然插入且耳部平贴；孔能对齐；舵臂根部不顶住；中央螺钉可安装；压板夹持后无明显轴向或转动松动；螺钉端部不碰舵机。
-发现问题时记录具体文件名、过紧/过松的位置，配合照片和卡尺尺寸反馈。通过试装不等于完成承重或步态验证。
+已试装：窗口能穿过、略松，安装耳孔能对齐。尚未实试：M2螺钉、完全入槽后的深度及压板夹持。
+这些几何和网格检查不能替代实物配合、承重及运动试验。
 '''
 with zipfile.ZipFile(out,'w',zipfile.ZIP_DEFLATED) as z:
     for name,raw in files.items():z.writestr(name,raw)
@@ -56,4 +48,4 @@ with zipfile.ZipFile(out,'w',zipfile.ZIP_DEFLATED) as z:
 with zipfile.ZipFile(out) as z:
     assert z.testzip() is None
     for name,raw in files.items():assert z.read(name)==raw
-print(str(out));print('4 reusable leg parts + 2 optional pieces; all x1; meshes and ZIP verified')
+print(str(out));print('Retest shin + knee clamp; optional left thigh + hip clamp; all x1; meshes and ZIP verified')

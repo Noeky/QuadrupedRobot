@@ -1,0 +1,16 @@
+thigh_left	R3 tapered slot	root width=8.400 mm	tip diameter=5.000 mm	end=18.650 mm	PASS
+thigh_right	R3 tapered slot	root width=8.400 mm	tip diameter=5.000 mm	end=18.650 mm	PASS
+shin	R3 tapered slot	root width=8.400 mm	tip diameter=5.000 mm	end=18.650 mm	PASS
+hip_horn_clamp	R3 contact pad	end=18.350 mm	PASS
+knee_horn_clamp	R3 contact pad	end=18.350 mm	PASS
+assembly	body	1 current native instances	PASS
+assembly	board_mount	1 current native instances	PASS
+assembly	ultrasonic_bracket	1 current native instances	PASS
+assembly	thigh_left	2 current native instances	PASS
+assembly	thigh_right	2 current native instances	PASS
+assembly	shin	4 current native instances	PASS
+assembly	hip_horn_clamp	4 current native instances	PASS
+assembly	knee_horn_clamp	4 current native instances	PASS
+assembly	servo_sg90	8 current native instances	PASS
+assembly	servo_horn_measured	8 current native instances	PASS
+assembly	35 component transforms match checked manifest	PASS

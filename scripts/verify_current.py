@@ -32,7 +32,7 @@ def check_mesh(raw):
 
 
 def main():
-    report = {'parts': {}, 'limitations': ['Physical fit and load not tested',
+    report = {'revision':'R3', 'parts': {}, 'limitations': ['Updated horn slot and clamp fit not yet physically tested',
               'Fasteners, wiring and PCB components not fully modelled',
               'Assembly components positioned and fixed; no motion mates']}
     (CURRENT / 'print').mkdir(exist_ok=True)
@@ -101,7 +101,7 @@ def render(items):
     ax.add_collection3d(Poly3DCollection(faces,facecolors=colors,edgecolor='none'))
     ax.set_xlim(-85,95);ax.set_ylim(-95,95);ax.set_zlim(-90,70);ax.set_box_aspect((180,190,160))
     ax.view_init(25,-48);ax.set_xlabel('X / mm');ax.set_ylabel('Y / mm');ax.set_zlabel('Z / mm')
-    ax.set_title('Revision 2 - SolidWorks native model\nLow-profile PCB frame and ultrasonic mounting frame; hardware fit pending')
+    ax.set_title('Revision 3 - SolidWorks native model\nGently tapered horn slots with R2.5 tips; physical fit pending')
     fig.tight_layout();fig.savefig(CURRENT/'preview.png',dpi=160);plt.close(fig)
 
 

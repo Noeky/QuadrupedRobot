@@ -1,0 +1,48 @@
+{
+  "revision": "R3",
+  "native_check": "fit_propagation_native.tsv",
+  "assembly_step_solids": 35,
+  "max_component_volume_error_mm3": 7.275957614183426e-12,
+  "whole_and_trial_meshes_identical_for_matching_parts": true,
+  "parts": {
+    "body": {
+      "quantity": 1,
+      "whole_set_matches_current_stl": true
+    },
+    "thigh_left": {
+      "quantity": 2,
+      "whole_set_matches_current_stl": true
+    },
+    "thigh_right": {
+      "quantity": 2,
+      "whole_set_matches_current_stl": true
+    },
+    "shin": {
+      "quantity": 4,
+      "whole_set_matches_current_stl": true
+    },
+    "hip_horn_clamp": {
+      "quantity": 4,
+      "whole_set_matches_current_stl": true
+    },
+    "knee_horn_clamp": {
+      "quantity": 4,
+      "whole_set_matches_current_stl": true
+    },
+    "board_mount": {
+      "quantity": 1,
+      "whole_set_matches_current_stl": true
+    },
+    "ultrasonic_bracket": {
+      "quantity": 1,
+      "whole_set_matches_current_stl": true
+    }
+  },
+  "static_intersections_over_0p05_mm3": [],
+  "physical_validation_pending": [
+    "M2 hardware fit",
+    "full seating depth and clamp play",
+    "fastener and wire clearance",
+    "load and walking tests"
+  ]
+}

@@ -61,9 +61,11 @@ public static class RobotRevision {
         Sketch(2,at,name);Circle(x+u*length,y+v*length,width/2);Finish(depth,false,name+"_tip");
     }
     static void Pocket(double u,double v,double at,double depth,string name,bool cut) {
-        Sketch(2,at,name);Poly(new[]{Along(0,0,u,v,0,-3.8),Along(0,0,u,v,18.3,-1.35),Along(0,0,u,v,18.3,1.35),Along(0,0,u,v,0,3.8)});Finish(depth,cut,name);
-        Sketch(2,at,name);Circle(0,0,3.8);Finish(depth,cut,name+"_root");
-        Sketch(2,at,name);Circle(u*18.3,v*18.3,1.35);Finish(depth,cut,name+"_tip");
+        // R3: gentle taper and a larger rounded tip, with no pinched root neck.
+        double radius=cut?4.2:3.8,tip=cut?16.15:17.0,tipRadius=cut?2.5:1.35;
+        Sketch(2,at,name);Poly(new[]{Along(0,0,u,v,0,-radius),Along(0,0,u,v,tip,-tipRadius),Along(0,0,u,v,tip,tipRadius),Along(0,0,u,v,0,radius)});Finish(depth,cut,name);
+        Sketch(2,at,name);Circle(0,0,radius);Finish(depth,cut,name+"_root");
+        Sketch(2,at,name);Circle(u*tip,v*tip,tipRadius);Finish(depth,cut,name+"_tip");
     }
     static void Fasteners(double u,double v,double at,double depth) {
         Sketch(2,at,"Retainer_holes");foreach(double side in new[]{-7.0,7.0}){var p=Along(0,0,u,v,8,side);Circle(p[0],p[1],1.25);}Finish(depth,true,"M2_clearance_2p5_pitch14");
@@ -71,7 +73,7 @@ public static class RobotRevision {
     static void Leg(string name,double u,double v,double length,bool thigh) {
         New(name);double d=thigh?9.85:5.5;
         Bar(0,0,u,v,length,20,0,d,"Leg_plate");
-        Pocket(u,v,-.01,2.21,"Horn_pocket_Lplus1_Dplus0p6",true);
+        Pocket(u,v,-.01,2.21,"Horn_slot_R3_gentle_taper_tipR2p5",true);
         Sketch(2,-.01,"Raised_root_relief");Poly(new[]{Along(0,0,u,v,0,-4),Along(0,0,u,v,7,-4),Along(0,0,u,v,7,4),Along(0,0,u,v,0,4)});Finish(3.31,true,"Horn_raised_root_relief_3p3");
         Hole(2,-.1,0,0,8.0,d+.2,"Horn_boss_clearance_8");
         Fasteners(u,v,-.1,d+.2);
@@ -195,6 +197,49 @@ public static class RobotRevision {
         if(deps==null)throw new Exception("No assembly references");for(int i=1;i<deps.Length;i+=2){string p=(string)deps[i];if(!File.Exists(p)||!Path.GetFullPath(p).StartsWith(root+Path.DirectorySeparatorChar,StringComparison.OrdinalIgnoreCase))throw new Exception("External or missing dependency "+p);}
         File.WriteAllLines(Path.Combine(root,"cad/current/native_validation.tsv"),rows);Console.WriteLine(String.Join("\n",rows));Console.WriteLine("All assembly references remain in workspace");
     }
+    static IFeature FindFeature(IModelDoc2 d,string name){for(IFeature f=d.FirstFeature() as IFeature;f!=null;f=f.GetNextFeature() as IFeature)if(f.Name==name)return f;return null;}
+    static ISketch FeatureSketch(IModelDoc2 d,string name) {
+        var f=FindFeature(d,name);if(f==null)throw new Exception("Missing feature: "+name);
+        for(IFeature child=f.GetFirstSubFeature() as IFeature;child!=null;child=child.GetNextSubFeature() as IFeature){var sk=child.GetSpecificFeature2() as ISketch;if(sk!=null)return sk;}
+        throw new Exception("Missing absorbed sketch: "+name);
+    }
+    static double[] CircleInfo(IModelDoc2 d,string name) {
+        object[] segments=FeatureSketch(d,name).GetSketchSegments() as object[];
+        foreach(object value in segments){var arc=value as ISketchArc;if(arc!=null){var p=arc.GetCenterPoint2() as ISketchPoint;return new[]{arc.GetRadius()*1000,Math.Sqrt(p.X*p.X+p.Y*p.Y+p.Z*p.Z)*1000};}}
+        throw new Exception("Missing circle: "+name);
+    }
+    static long Identity(object item){IntPtr p=Marshal.GetIUnknownForObject(item);long id=p.ToInt64();Marshal.Release(p);return id;}
+    static void VerifyPropagation() {
+        var existing=new HashSet<long>();object[] before=app.GetDocuments() as object[];if(before!=null)foreach(object d in before)existing.Add(Identity(d));
+        var previous=app.ActiveDoc as IModelDoc2;string title=previous==null?"":previous.GetTitle();var rows=new List<string>();
+        try {
+            foreach(string name in new[]{"thigh_left","thigh_right","shin"}){
+                var d=Open(Path.GetFullPath(Path.Combine(root,"cad/current/parts",name+".SLDPRT")));
+                string feature="Horn_slot_R3_gentle_taper_tipR2p5";
+                var rc=CircleInfo(d,feature+"_root");var tc=CircleInfo(d,feature+"_tip");
+                if(Math.Abs(rc[0]-4.2)>.001||Math.Abs(tc[0]-2.5)>.001||Math.Abs(tc[1]-16.15)>.001)throw new Exception("Slot dimensions differ: "+name);
+                var points=new List<ISketchPoint>();object[] segs=FeatureSketch(d,feature).GetSketchSegments() as object[];
+                foreach(object s in segs){var line=s as ISketchLine;if(line!=null)points.Add(line.GetStartPoint2() as ISketchPoint);}
+                var near=new List<ISketchPoint>();var far=new List<ISketchPoint>();foreach(var p in points){if(Math.Sqrt(p.X*p.X+p.Y*p.Y)<.01)near.Add(p);else far.Add(p);}
+                if(near.Count!=2||far.Count!=2)throw new Exception("Unexpected tapered contour "+name);
+                double width0=Math.Sqrt(Math.Pow(near[0].X-near[1].X,2)+Math.Pow(near[0].Y-near[1].Y,2))*1000;
+                double width1=Math.Sqrt(Math.Pow(far[0].X-far[1].X,2)+Math.Pow(far[0].Y-far[1].Y,2))*1000;
+                if(Math.Abs(width0-8.4)>.001||Math.Abs(width1-5)>.001)throw new Exception("Unexpected widths "+name);
+                if(FindFeature(d,"Horn_pocket_Lplus1_Dplus0p6")!=null)throw new Exception("Legacy horn cut remains "+name);
+                rows.Add(name+"\tR3 tapered slot\troot width="+width0.ToString("F3")+" mm\ttip diameter="+width1.ToString("F3")+" mm\tend="+(tc[0]+tc[1]).ToString("F3")+" mm\tPASS");
+            }
+            foreach(string name in new[]{"hip_horn_clamp","knee_horn_clamp"}){var d=Open(Path.GetFullPath(Path.Combine(root,"cad/current/parts",name+".SLDPRT")));var c=CircleInfo(d,"Horn_contact_pad_0p15_tip");if(Math.Abs(c[0]-1.35)>.001||Math.Abs(c[1]-17)>.001)throw new Exception("Old retainer pad "+name);rows.Add(name+"\tR3 contact pad\tend="+(c[0]+c[1]).ToString("F3")+" mm\tPASS");}
+            int error=0,warning=0;var assy=app.OpenDoc6(Path.GetFullPath(Path.Combine(root,"cad/current/robot.SLDASM")),2,1,"",ref error,ref warning) as IModelDoc2;if(assy==null||error!=0)throw new Exception("Assembly open error");
+            var expected=new Dictionary<string,int>{{"body",1},{"board_mount",1},{"ultrasonic_bracket",1},{"thigh_left",2},{"thigh_right",2},{"shin",4},{"hip_horn_clamp",4},{"knee_horn_clamp",4},{"servo_sg90",8},{"servo_horn_measured",8}};
+            var poses=new List<Tuple<string,double[]>>();foreach(string line in File.ReadAllLines(Path.Combine(root,"cad/current/assembly_manifest.tsv"))){string[] fields=line.Split('\t');poses.Add(Tuple.Create(Path.GetFullPath(fields[1]),Array.ConvertAll(fields[2].Split(','),x=>Double.Parse(x,System.Globalization.CultureInfo.InvariantCulture))));}
+            var counts=new Dictionary<string,int>();object[] cs=((IAssemblyDoc)assy).GetComponents(false) as object[];
+            foreach(IComponent2 c in cs){var d=c.GetModelDoc2() as IModelDoc2;if(d==null)throw new Exception("Unresolved "+c.Name2);string p=Path.GetFullPath(d.GetPathName());string name=Path.GetFileNameWithoutExtension(p);string folder=(name=="servo_sg90"||name=="servo_horn_measured")?"hardware/reference":"cad/current/parts";if(!String.Equals(p,Path.GetFullPath(Path.Combine(root,folder,name+".SLDPRT")),StringComparison.OrdinalIgnoreCase))throw new Exception("Old reference "+p);if(!counts.ContainsKey(name))counts[name]=0;counts[name]++;
+                var t=c.Transform2.ArrayData as double[];int match=-1;for(int i=0;i<poses.Count;i++){if(!String.Equals(p,poses[i].Item1,StringComparison.OrdinalIgnoreCase))continue;bool same=true;for(int j=0;j<13;j++)if(Math.Abs(t[j]-poses[i].Item2[j])>1e-8)same=false;if(same){match=i;break;}}if(match<0)throw new Exception("Assembly pose differs from checked manifest: "+c.Name2);poses.RemoveAt(match);
+            }
+            foreach(var kv in expected){if(!counts.ContainsKey(kv.Key)||counts[kv.Key]!=kv.Value)throw new Exception("Wrong count "+kv.Key);rows.Add("assembly\t"+kv.Key+"\t"+kv.Value+" current native instances\tPASS");}
+            if(cs.Length!=35||poses.Count!=0)throw new Exception("Assembly count differs");rows.Add("assembly\t35 component transforms match checked manifest\tPASS");File.WriteAllLines(Path.Combine(root,"cad/current/fit_propagation_native.tsv"),rows);Console.WriteLine(String.Join("\n",rows));
+        } finally {object[] after=app.GetDocuments() as object[];if(after!=null)foreach(IModelDoc2 d in after)if(!existing.Contains(Identity(d)))app.CloseDoc(d.GetTitle());if(title!=""){int e=0;app.ActivateDoc2(title,false,ref e);}}
+    }
     static void Save(IModelDoc2 m,string file) {
         file=Path.GetFullPath(file);
         Directory.CreateDirectory(Path.GetDirectoryName(file));int e=0,w=0;
@@ -222,7 +267,9 @@ public static class RobotRevision {
     public static void Run(string directory,string action) {
         root=directory;app=(ISldWorks)Marshal.GetActiveObject("SldWorks.Application");
         if(action=="Audit"){Audit();return;}
+        if(action=="VerifyPropagation"){VerifyPropagation();return;}
         if(action=="TestGauge"){TestGauge();return;}
+        if(action=="UpdateHornSlots"){CloseOwned();Leg("thigh_left",.5,Math.Sqrt(3)/2,40,true);Console.WriteLine("R3 left thigh");Leg("thigh_right",.5,-Math.Sqrt(3)/2,40,true);Console.WriteLine("R3 right thigh");Leg("shin",-.5,Math.Sqrt(3)/2,45,false);Console.WriteLine("R3 shin");Retainer("hip_horn_clamp",.5,Math.Sqrt(3)/2);Retainer("knee_horn_clamp",-.5,Math.Sqrt(3)/2);Console.WriteLine("R3 retainers");int e=0,w=0;var d=app.OpenDoc6(Path.GetFullPath(Path.Combine(root,"cad/current/robot.SLDASM")),2,1,"",ref e,ref w) as IModelDoc2;if(d==null||e!=0)throw new Exception("Assembly refresh failed");d.ForceRebuild3(false);Save(d,Path.Combine(root,"cad/current/robot.SLDASM"));Save(d,Path.Combine(root,"cad/current/robot.step"));app.CloseDoc(d.GetTitle());Audit();return;}
         if(action=="UpdateBoard") {CloseOwned();BoardMount();int e=0,w=0;var d=app.OpenDoc6(Path.GetFullPath(Path.Combine(root,"cad/current/robot.SLDASM")),2,1,"",ref e,ref w) as IModelDoc2;if(d==null||e!=0)throw new Exception("Assembly refresh failed");d.ForceRebuild3(false);Save(d,Path.Combine(root,"cad/current/robot.SLDASM"));Save(d,Path.Combine(root,"cad/current/robot.step"));app.CloseDoc(d.GetTitle());Audit();return;}
         if(action=="Show"){int e=0,w=0;var d=app.OpenDoc6(Path.GetFullPath(Path.Combine(root,"cad/current/robot.SLDASM")),2,1,"",ref e,ref w) as IModelDoc2;if(d==null||e!=0)throw new Exception("Cannot show assembly");app.Visible=true;d.ShowNamedView2("",7);d.ViewZoomtofit2();return;}
         if(action=="Assembly"){Assembly();return;}
