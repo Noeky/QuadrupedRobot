@@ -10,3 +10,6 @@ __pycache__/
 *.sldbak
 *.SLDBAK
 *.swp
+firmware/servo_control/wifi_config.h
+output/playwright/
+.playwright-cli/

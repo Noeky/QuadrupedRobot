@@ -3,22 +3,32 @@
 
 Servo servos[SERVO_COUNT];
 int commandAngles[SERVO_COUNT];
+int commandPulses[SERVO_COUNT];
+
+void writeServoAngle(unsigned joint, float angle, int minChangeUs) {
+  const int pulse=SERVO_MIN_US+int(lroundf(angle*(SERVO_MAX_US-SERVO_MIN_US)/180.f));
+  if (abs(pulse-commandPulses[joint])<minChangeUs) return;
+  servos[joint].writeMicroseconds(pulse);
+  commandPulses[joint]=pulse;
+  commandAngles[joint]=int(lroundf(angle));
+}
+
 #include "walk_control.h"
 
 bool setServo(long id, long angle) {
   // API angle-domain validation only; no extra joint working limits.
   // Reject >=500 so ESP32Servo cannot interpret an angle as microseconds.
   if (id < 1 || id > SERVO_COUNT || angle < 0 || angle > 180) {
-    Serial.println("Use servo ID 1..8 and angle 0..180.");
+    reply("Use servo ID 1..8 and angle 0..180.",false);
     return false;
   }
   const uint8_t i = uint8_t(id - 1);
   if (!servos[i].attached()) {
-    Serial.printf("ERROR: servo %ld is not attached.\n", id);
+    reply("Servo is not attached.",false);
     return false;
   }
-  servos[i].write(int(angle));
-  commandAngles[i] = int(angle);
+  writeServoAngle(i,angle,1);
+  reply("Servo "+String(id)+" commanded to "+String(angle)+" degrees (not measured).");
   Serial.printf("%ld %s GPIO%u -> %ld deg (command, not measured)\n",
                 id, SERVO_NAMES[i], SERVO_PINS[i], angle);
   return true;
@@ -26,18 +36,21 @@ bool setServo(long id, long angle) {
 
 void setAll(long angle) {
   if (angle < 0 || angle > 180) {
-    Serial.println("Use angle 0..180.");
+    reply("Use angle 0..180.",false);
     return;
+  }
+  for (uint8_t i=0;i<SERVO_COUNT;++i) if (!servos[i].attached()) {
+    reply("A servo is not attached; all-angle command rejected.",false); return;
   }
   for (uint8_t i = 0; i < SERVO_COUNT; ++i) setServo(i + 1, angle);
 }
 
 void printStatus() {
   for (uint8_t i = 0; i < SERVO_COUNT; ++i) {
-    Serial.printf("%u %s GPIO%u: %s, last command %d deg\n", i + 1,
+    Serial.printf("%u %s GPIO%u: %s, last command %d deg / %d us\n", i + 1,
                   SERVO_NAMES[i], SERVO_PINS[i],
                   servos[i].attached() ? "attached" : "NOT ATTACHED",
-                  commandAngles[i]);
+                  commandAngles[i],commandPulses[i]);
   }
 }
 
@@ -51,26 +64,54 @@ void printHelp() {
   walkHelp();
 }
 
+// Shared executor: HTTP and Serial have identical validation and effects.
+bool executeCommand(String text) {
+  text.trim(); commandMessage=""; commandOK=true;
+  if (!text.length() || text.length()>95) { reply("Empty or oversized command.",false); return false; }
+  if (text=="s" || text=="list") { printStatus(); reply("Status updated."); return true; }
+  if (text=="h" || text=="help") { printHelp(); reply("Help printed; all controls are also on the phone page."); return true; }
+  if (walkCommand(text)) return commandOK;
+  if (text=="init") { stopWalk(); setAll(INIT_ANGLE); return commandOK; }
+  long id,angle; char extra;
+  if (sscanf(text.c_str(),"all %ld %c",&angle,&extra)==1) {
+    if (angle<0 || angle>180) { reply("Use angle 0..180.",false); return false; }
+    stopWalk(); setAll(angle); return commandOK;
+  }
+  if (sscanf(text.c_str(),"set %ld %ld %c",&id,&angle,&extra)==2 ||
+      sscanf(text.c_str(),"%ld %ld %c",&id,&angle,&extra)==2) {
+    if (id<1 || id>SERVO_COUNT || angle<0 || angle>180) { reply("Use ID 1..8, angle 0..180.",false); return false; }
+    stopWalk(); return setServo(id,angle);
+  }
+  reply("Invalid command.",false); return false;
+}
+
+#include "wifi_control.h"
+
 void setup() {
   Serial.begin(115200);
   walkPrefs.begin("quad-walk", false);
+  loadWalkCalibration();
   Serial.setTimeout(100);
   for (uint8_t t = 0; t < 4; ++t) ESP32PWM::allocateTimer(t);
   for (uint8_t i = 0; i < SERVO_COUNT; ++i) {
-    commandAngles[i] = INIT_ANGLE;
+    commandAngles[i] = standCaptured ? standAngles[i] : INIT_ANGLE;
+    commandPulses[i] = 0;
     servos[i].setPeriodHertz(50);
     servos[i].attach(SERVO_PINS[i], SERVO_MIN_US, SERVO_MAX_US);
-    if (servos[i].attached()) servos[i].write(INIT_ANGLE);
+    if (servos[i].attached()) writeServoAngle(i,commandAngles[i],1);
     else Serial.printf("ERROR attaching port %u / GPIO%u\n", i + 1, SERVO_PINS[i]);
     delay(150);  // Stagger initial commands; this is not feedback or a power guarantee.
   }
-  Serial.println("Ready. All attached servos commanded to 90 deg; NOT a standing pose.");
-  loadWalkCalibration();
+  Serial.println(standCaptured ? "Ready. Startup pose: saved stand." :
+                                "Ready. No saved stand; startup uses 90 deg midpoint.");
+  loadGaitSettings();
   printStatus();
   printHelp();
+  setupPhoneControl();
 }
 
 void loop() {
+  updatePhoneControl();
   updateWalk();
   // Bounded nonblocking line input keeps stop responsive during the gait.
   static char buffer[96];
@@ -88,23 +129,7 @@ void loop() {
   String text(buffer);
   length=0;
   text.trim();
-  if (text.length() == 0) return;
-  if (text == "s" || text == "list") { printStatus(); return; }
-  if (text == "h" || text == "help") { printHelp(); return; }
-  if (walkCommand(text)) return;
-  if (text == "init") { stopWalk(); setAll(INIT_ANGLE); return; }
-
-  long id, angle;
-  char extra;
-  const char *line = text.c_str();
-  if (sscanf(line, "all %ld %c", &angle, &extra) == 1) {
-    stopWalk();
-    setAll(angle);
-  } else if (sscanf(line, "set %ld %ld %c", &id, &angle, &extra) == 2 ||
-             sscanf(line, "%ld %ld %c", &id, &angle, &extra) == 2) {
-    stopWalk();
-    setServo(id, angle);
-  } else {
-    Serial.println("Invalid command. Example: 1 90, all 90, init, s.");
-  }
+  if (!text.length()) return;
+  if (executeCommand(text) && text!="s" && text!="list" && text!="ws" && text!="h" && text!="help")
+    releasePhoneControl(); // Explicit successful serial command takes control.
 }
