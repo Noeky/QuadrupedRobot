@@ -109,6 +109,33 @@ int main() {
     footPath(.5f*(lp+(1-lp-rp)/2),0,x,z,v);
     assert(fabsf(z-(65+depth-lift))<.001f);
   }
+  // Reverse: the foot path is mirrored in x, z and lift timing unchanged.
+  for (int n=0;n<=2000;++n) {
+    const float phase=n/2000.f;
+    for (unsigned leg=0;leg<4;++leg) {
+      float xf,zf,xb,zb,h,k;
+      footPath(phase,leg,xf,zf);
+      footPath(phase,leg,xb,zb,LegTuning(),-1.f,0.f,.5f);
+      assert(fabsf(xb+xf)<.001f);
+      assert(fabsf(zb-zf)<.001f);
+      assert(legIK(xb,zb,h,k));
+    }
+  }
+  // Differential turn: forward-left makes the right stride larger.
+  {
+    LegTuning v;
+    float x,z;
+    footPath(0,0,x,z,v,1.f,1.f,.5f);   // FL swing start, left stride 14
+    assert(fabsf(x-(-7.f))<.001f);
+    footPath(0,1,x,z,v,1.f,1.f,.5f);   // FR stance start, right stride 42
+    assert(fabsf(x-21.f)<.001f);
+    footPath(0,0,x,z,v,-1.f,1.f,.5f);  // reverse-left: left stride 42
+    assert(fabsf(x-21.f)<.001f);
+    assert(validTurn(v,1.f,.5f));
+    LegTuning wide;wide.stride=50.f;
+    assert(!validTurn(wide,1.f,.5f));
+    assert(!validTurn(v,1.f,.81f));
+  }
   LegTuning bad;bad.lift=NAN;assert(!validLegTuning(bad));
-  printf("PASS: %u tuned samples, parameter extremes and arbitrary decimal speeds\n",tunedSamples);
+  printf("PASS: %u tuned samples, reverse/turn, parameter extremes and arbitrary decimal speeds\n",tunedSamples);
 }

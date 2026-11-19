@@ -2,11 +2,12 @@
 
 北京大学 2026–2027 学年秋季学期《先进制造与机器人实践》第 3 组。
 
-八个180°舵机、每腿两自由度。机械文件为试装修订后的 R3。当前固件支持手机 Wi-Fi 面板、串口调角、站姿标定、连续调速及逐腿步态调节。已烧录的四拍版前进不稳定，新版加入参考 Sesame Robot 的对角前行，待烧录对照。当前先调通稳定前进，再实现左右转向和倒退，最后接入传感器。
+八个180°舵机、每腿两自由度。机械文件为试装修订后的 R3。当前固件支持手机 Wi-Fi 面板、串口调角、站姿标定、连续调速、逐腿步态调节，以及前进/后退/左右转。四拍版前进仍不稳定，新版对角步态待实机对照；转向和倒退是开环差速/反向步态，需要低速、小增益验证。当前继续调稳定前进和直线性，之后再接入传感器。
 
 ## 使用入口
 
 - [Arduino 固件与全部指令](firmware/servo_control/README.md)：在 Arduino IDE 中打开同目录的 servo_control.ino，串口115200、New Line。
+- [MuJoCo 简化仿真](sim/run_gait.py)：前进/后退/左右转、舵机滞后/死区与录制工具；不替代实机测试。
 - [接线与关节编号](hardware/引脚分配.md)：8路舵机PWM引脚的唯一固定记录。
 - [SolidWorks 原生装配](cad/current/robot.SLDASM)与[原生零件](cad/current/parts/)：35个组件，装配为定位固定，尚未建立运动配合。
 - [整机打印包](releases/QuadrupedRobot_Print_R3.zip)：8种零件、共19件；文件名xN表示总数量。
@@ -22,6 +23,7 @@
 ```text
 cad/current/             当前原生CAD、STEP、打印STL、装配清单和检查报告
 firmware/servo_control/  唯一当前固件、手机面板、引脚配置和操作说明
+sim/                     MuJoCo简化模型、舵机模型、方向检查与录制工具
 hardware/reference/      舵机、原始及实测修订舵臂参考模型
 hardware/electronics/    原始原理图与PCB资料
 hardware/引脚分配.md      接线与关节编号

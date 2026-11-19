@@ -8,6 +8,9 @@ int main(){
   int initialWrites=servos[0].writes;
   assert(phoneServer.request("/api/state",HTTP_GET)==200);
   assert(phoneServer.body.find("\"ready\":false")!=String::npos);
+  assert(phoneServer.body.find("\"motion\":\"stopped\"")!=String::npos);
+  assert(phoneServer.body.find("\"turnGain\":0.500")!=String::npos);
+  assert(phoneServer.body.find("\"footOffset\":0.0")!=String::npos);
   assert(servos[0].writes==initialWrites); // Opening/refreshing never moves a joint.
   auto command=[](const String &s,const String &client="phone-1234"){
     return phoneServer.request("/api/command",HTTP_POST,{{"client",client},{"cmd",s}},phoneKey);
@@ -24,6 +27,14 @@ int main(){
   assert(command("stand load")==200 && servos[0].writes==initialWrites);
   assert(command("stand save")==200);
   auto calibration=Preferences::data["quad-walk"];
+  assert(command("foot offset -5")==200 && walkFootOffsetX==-5.f);
+  assert(phoneServer.request("/api/state",HTTP_GET)==200);
+  assert(phoneServer.body.find("\"footOffset\":-5.0")!=String::npos);
+  assert(command("foot offset -25")==422 && walkFootOffsetX==-5.f);
+  assert(command("stand")==200);fakeMillis+=1500;updateWalk();
+  assert(!transitioning && commandAngles[0]!=standAngles[0]); // Stand shifted.
+  assert(command("foot offset -2.5")==200 && walkFootOffsetX==-2.5f);
+  assert(command("foot offset 0")==200 && walkFootOffsetX==0.f);
   assert(command("walk speed 0.731")==200 && fabsf(walkSpeed-.731f)<1e-6f);
   assert(command("walk speed 2.137")==200 && fabsf(walkSpeed-2.137f)<1e-6f);
   assert(command("walk deadband 1.25")==200 && walkDeadband==1.25f);
@@ -46,23 +57,35 @@ int main(){
   assert(command("walk set 3 15 0 28 45 45")==422);
   assert(command("walk set 5 15 0 28 25 25")==422);
   assert(command("walk")==200 && walking && transitioning);
+  assert(command("walk back")==422 && walkDirectionTarget==1.f); // Wait for transition.
   assert(phoneServer.request("/api/heartbeat",HTTP_POST,{{"client","phone-1234"}},phoneKey)==200);
   assert(phoneServer.body.find("\"ok\":true")!=String::npos);
   assert(phoneServer.body.find("\"walking\":true")!=String::npos);
-  for(const char *cmd:{"stand load","stand direction 1 1","stand save","walk load","walk save","walk reset"})
+  for(const char *cmd:{"stand load","stand direction 1 1","stand save","walk load","walk save","walk reset","foot offset 0"})
     assert(command(cmd)==422 && walking);
   assert(command("stand record")==422);
   assert(command("walk set 3 15 0 28 25 25")==422);
   assert(command("stand","phone-9999")==409); // Another page cannot silently take over.
   fakeMillis+=1500; updateWalk();assert(!transitioning);
+  assert(command("walk left")==200 && walkTurnTarget==1.f);
+  assert(phoneServer.request("/api/state",HTTP_GET)==200);
+  assert(phoneServer.body.find("\"motion\":\"left\"")!=String::npos);
+  assert(command("walk right")==200 && walkTurnTarget==-1.f);
+  assert(command("walk straight")==200 && walkTurnTarget==0.f);
+  assert(command("walk back")==200 && walkDirectionTarget==-1.f);
+  assert(command("walk")==200 && walkDirectionTarget==1.f && walkTurnTarget==0.f);
+  assert(command("walk turn 0.6")==422 && walking); // Gain changes need a stop.
   fakeMillis+=100;updateWalk();float phase=walkPhase;
   assert(command("walk speed 0.789")==200 && fabsf(walkPhase-phase)<1e-6f);
   fakeMillis+=300;updateWalk();
   assert(fabsf(walkPhase-advanceWalkPhase(phase,40,.789f))<1e-6f);
   for(auto &servo:servos) assert(servo.pulse>500 && servo.pulse<2500);
-  assert(command("stop","phone-9999")==200 && !walking);
+  assert(command("stop","phone-9999")==200 && !walking && walkDirectionTarget==1.f && walkTurnTarget==0.f);
   assert(command("stand")==200);fakeMillis+=1500;updateWalk();
   for(unsigned i=0;i<8;++i)assert(commandAngles[i]==standAngles[i]); // Tuning does not alter stand.
+  assert(command("walk turn 0.6")==200 && walkTurnGain==0.6f);
+  assert(command("walk turn 1.0")==422 && walkTurnGain==0.6f);
+  assert(command("walk turn 0.5")==200 && walkTurnGain==0.5f);
   assert(command("crawl")==422 && !walking);
   assert(command("f")==422 && !walking);
   assert(command("walk")==200 && walking);
@@ -99,5 +122,5 @@ int main(){
   writeServoAngle(0,82.f,1);
   writeServoAngle(0,82.2f,1);
   assert(servos[0].pulse>priorPulse && commandAngles[0]==82);
-  puts("PASS: shared Serial/HTTP executor, arbitrary speeds, independent tuning, calibration isolation, persistence, ownership, heartbeat timeout and unchanged stand");
+  puts("PASS: shared Serial/HTTP executor, forward/back/turn, arbitrary speeds, independent tuning, calibration isolation, persistence, ownership, heartbeat timeout and unchanged stand");
 }

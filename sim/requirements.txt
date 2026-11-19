@@ -1,0 +1,14 @@
+# MuJoCo simulation, recording and optional PPO training.
+# Install with: python -m pip install -r sim/requirements.txt
+mujoco>=4.0
+numpy
+scipy
+matplotlib
+pandas
+# Optional: Gymnasium/PPO environment and training.
+gymnasium>=1.0
+stable-baselines3>=2.4
+# Real-robot camera/ArUco logging and CMA-ES tuning.
+opencv-contrib-python
+pyserial
+cma
