@@ -69,6 +69,8 @@ void phoneState() {
     ",\"speed\":"+String(walkSpeed,5)+",\"deadband\":"+String(walkDeadband,3)+
     ",\"motion\":"+jsonQuote(motionName())+
     ",\"turnGain\":"+String(walkTurnGain,3)+",\"footOffset\":"+String(walkFootOffsetX,1)+
+    ",\"walkCenter\":"+String(walkCenterX,1)+",\"walkBias\":"+String(walkBias,3)+
+    ",\"waving\":"+(waving ? "true" : "false")+",\"waveLeg\":"+String(waveLeg+1)+
     ",\"direction\":"+String(walkDirectionTarget,3)+
     ",\"turn\":"+String(walkTurnTarget,3)+",\"message\":"+jsonQuote(commandMessage)+
     ",\"connected\":"+(WiFi.status()==WL_CONNECTED ? "true" : "false")+

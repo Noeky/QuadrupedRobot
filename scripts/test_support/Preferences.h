@@ -12,6 +12,8 @@ public:
   size_t getBytes(const char *key,void *p,size_t n){auto &v=data[ns][key];if(v.size()!=n)return 0;memcpy(p,v.data(),n);return n;}
   unsigned getUInt(const char *key,unsigned fallback=0){unsigned n;return getBytes(key,&n,sizeof n)==sizeof n?n:fallback;}
   size_t putUInt(const char *key,unsigned n){return putBytes(key,&n,sizeof n);}
+  float getFloat(const char *key,float fallback=0){float n;return getBytes(key,&n,sizeof n)==sizeof n?n:fallback;}
+  size_t putFloat(const char *key,float n){return putBytes(key,&n,sizeof n);}
   bool getBool(const char *key,bool fallback=false){bool n;return getBytes(key,&n,sizeof n)==sizeof n?n:fallback;}
   size_t putBool(const char *key,bool n){return putBytes(key,&n,sizeof n);}
   String getString(const char *key,const String &fallback=""){auto &v=data[ns][key];return v.empty()?fallback:String(std::string(v.begin(),v.end()));}

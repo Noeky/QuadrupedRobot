@@ -10,6 +10,12 @@
 
 `foot offset MM` 也是 RAM-only；它同时平移 `stand` 目标与步态足端轨迹，负值=足端后移。若要把偏移固化，先 `foot offset X`、`stand`，再 `stand record`（记录时自动把 offset 归零）和 `stand save`，这会覆盖 `quad-walk` 的站姿/方向；`legs-v2` 不变，不需要 `walk save`。
 
+`wave` / `wave leg 1|2|3|4` 同样 RAM-only；默认左前腿 20mm（髋角约30°），后腿 25mm；前腿 wave 的支撑脚前移8mm，FR/RL +6mm、RR -4mm，使重心相对右后；支撑腿还使用当前步态 depth 和 foot offset，不改任何存档。前腿抬起会有俯仰，需托住实测。
+
+`walk center MM` 只平移步态足端前后中心，不移动 stand；它由 `walk save` 写入 `quad-gait` 的新键 `center`。旧步态存档没有该键时按 0 读取；`walk reset` 把它归 0。原 `legs-v2` 结构不变。
+
+`walk bias X` 是直行偏置（正=左），只作用于 turn 目标为 0 的直行；由 `walk save` 写入 `quad-gait` 的新键 `bias`，旧存档按 0 读取；`walk reset` 归 0。你验证过的 0.09 可以直接作为 `bias` 保存，`walk turn` 可恢复为 0.5 用于真正的左右转。
+
 ## 参数存放位置
 
 | 内容 | NVS 命名空间 | 写入命令 | 读取/恢复 |
@@ -22,7 +28,34 @@
 
 ## 当前备份
 
-备份时间：2026-11-19 17:24:05（状态头、1–2 路）；17:21:54（3–8 路、四腿）。两次读数一致，合并如下。
+备份时间：2026-11-21 21:57:39（状态头、1 路）；stand 2–8 和四腿来自 21:50:13，1 路两次都是 85；如中间改过请重发完整 `ws`。
+
+```text
+walking=0 standCaptured=1 ready=1 speed=1.00 deadband=1.00 deg nominal support=65mm
+motion=stopped dir=1.00 turn=0.00 gain=0.50 targetDir=1.00 targetTurn=0.00 footOffset=0.0 mm walkCenter=-8.0 mm walkBias=0.000 waving=0 waveLeg=1
+1 stand=85 dir=-1
+2 stand=80 dir=1
+3 stand=95 dir=1
+4 stand=100 dir=-1
+5 stand=90 dir=-1
+6 stand=80 dir=1
+7 stand=100 dir=1
+8 stand=75 dir=-1
+leg 1 lift=8.000 depth=2.000 stride=24.000 lift%=25.00 lower%=25.00
+leg 2 lift=10.000 depth=0.000 stride=26.000 lift%=25.00 lower%=25.00
+leg 3 lift=10.000 depth=-1.000 stride=24.000 lift%=25.00 lower%=25.00
+leg 4 lift=10.000 depth=2.000 stride=24.000 lift%=25.00 lower%=25.00
+```
+
+已确认：
+
+- 这是你**把机身调平后**的新站姿/步态；方向模式仍是 `-1,+1,+1,-1,-1,+1,+1,-1`。
+- 前腿抬脚已降到 8/10mm，步长 24/26mm；四腿 depth 分别为 +2/0/-1/+2mm。
+- 补发完整 `ws` 后要替换上面两行“缺”标记，并确认新站姿是否已经 `stand save`。
+
+## 历史备份（2026-11-19，旧前倾站姿）
+
+仅作回滚参考，不建议再直接套用：
 
 ```text
 walking=0 standCaptured=1 ready=1 speed=1.00 deadband=1.00 deg nominal support=65mm
@@ -34,17 +67,8 @@ walking=0 standCaptured=1 ready=1 speed=1.00 deadband=1.00 deg nominal support=6
 6 stand=65 dir=1
 7 stand=90 dir=1
 8 stand=90 dir=-1
-leg 1 lift=15.000 depth=0.000 stride=28.000 lift%=25.00 lower%=25.00
-leg 2 lift=15.000 depth=0.000 stride=28.000 lift%=25.00 lower%=25.00
-leg 3 lift=15.000 depth=0.000 stride=28.000 lift%=25.00 lower%=25.00
-leg 4 lift=15.000 depth=0.000 stride=28.000 lift%=25.00 lower%=25.00
+leg 1–4 lift=15 depth=0 stride=28 lift%=25 lower%=25
 ```
-
-已确认：
-
-- `standCaptured=1`、`ready=1`，8 路方向均非 0；方向模式与 README 的 `-1,+1,+1,-1,-1,+1,+1,-1` 完全一致。
-- 四腿步态都是默认值；`speed=1.00`、`deadband=1.00` 是 RAM 值，重启会回默认。
-- 这是当前完整基线。以后任何 `walk save` / `stand save` 前先与这段对比。
 
 ## 恢复步骤
 
