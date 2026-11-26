@@ -100,6 +100,7 @@ class GaitRunner:
         if self.servo is not None:
             self.servo.reset(self.home)
 
+        self.frame = 0
         self.t = 0.0
         self.phase = 0.0
         self.gait_start_x: float | None = None
@@ -130,7 +131,8 @@ class GaitRunner:
         for _ in range(self.n_substeps):
             mujoco.mj_step(self.model, self.data)
 
-        self.t += CONTROL_DT
+        self.frame += 1
+        self.t = self.frame * CONTROL_DT
         if self.t >= TRANSITION_S:
             self.phase = (self.phase + CONTROL_DT * self.speed / BASE_CYCLE_S) % 1.0
 

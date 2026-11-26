@@ -39,6 +39,7 @@ def main() -> None:
             turn_gain=0.5,
         )
         m = runner.run(SECONDS)
+        assert runner.frame == 675 and m.time_s == SECONDS, (runner.frame, m.time_s)
         results[name] = m
         print(
             f"{name:8s} dx={m.dx_gait_mm:7.1f} mm  "
