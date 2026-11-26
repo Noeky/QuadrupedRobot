@@ -34,6 +34,15 @@ constexpr float WALK_BIAS_MAX=.4f;
 // Greeting wave: lift one rear leg while the three support feet hold the stand.
 // Default leg index 0 = leg 1 (front left). Front waves use a 20 mm lift and
 // a support pose that shifts the body rear/right; rear waves are more stable.
+// Timed in-place turn: opposite signed strides on left/right sides. No IMU;
+// the 90 deg angle is calibrated by turnDurationMs. The gait starts/ends with
+// the normal 1.5 s stand transition.
+bool turning=false;
+float turnSign=1.f;             // +1 left, -1 right
+uint32_t turnGaitStart=0, turnDurationMs=2000;
+float turnStrideMm=18.f;
+constexpr float TURN_STRIDE_MIN=5.f, TURN_STRIDE_MAX=30.f;
+
 bool waving=false;
 uint32_t waveStart=0;
 float waveFrom[SERVO_COUNT], waveSupport[SERVO_COUNT], waveStand[SERVO_COUNT];
@@ -63,6 +72,7 @@ void stopWalk() {
   walking=false;
   transitioning=false;
   waving=false;
+  turning=false;
   // Direction is a runtime mode; reset it so a later stop/start always begins
   // from a known forward/straight request. The last commanded pose is held.
   walkDirection=1.f;
@@ -79,6 +89,7 @@ bool walkReady() {
 }
 
 const char *motionName() {
+  if (turning) return "turn";
   if (waving) return "wave";
   if (!walking) return "stopped";
   if (walkTurnTarget>.05f) return "left";
@@ -136,6 +147,12 @@ bool standOffsetValid() {
   return true;
 }
 
+bool buildStandTarget(float *target) {
+  for (uint8_t leg=0; leg<4; ++leg)
+    if (!legTarget(leg,walkFootOffsetX,CALIBRATION_HEIGHT_MM,target)) return false;
+  return true;
+}
+
 float straightTurn(float turn, float turnGain) {
   if (fabsf(turn)<.05f && turnGain>.01f) return turn+walkBias/turnGain;
   return turn;
@@ -150,6 +167,30 @@ bool calculateWalk(float phase, float *target, const LegTuning *settings,
     x += walkFootOffsetX + walkCenterX;
     if (!legTarget(leg,x,z,target)) return false;
   }
+  return true;
+}
+
+// In-place turn: left/right sides get opposite signed strides; the average
+// forward push cancels. Positive sign = left turn. Uses the stand/gait offset
+// but not the walking center (walkCenterX).
+bool calculateTurn(float phase, float *target, const LegTuning *settings,
+                   float sign, float strideMm) {
+  for (uint8_t leg=0; leg<4; ++leg) {
+    const float side=(leg==0 || leg==2) ? 1.f : -1.f; // FL,FR,RL,RR
+    const float stride=-sign*side*strideMm;
+    float x,z;
+    footPathForStride(phase,leg,x,z,settings[leg],stride);
+    x += walkFootOffsetX;
+    if (!legTarget(leg,x,z,target)) return false;
+  }
+  return true;
+}
+
+bool validateTurnInPlace(const LegTuning *settings, float sign, float strideMm) {
+  if (!isfinite(strideMm) || strideMm<TURN_STRIDE_MIN || strideMm>TURN_STRIDE_MAX) return false;
+  float target[SERVO_COUNT];
+  for (int n=0;n<=1000;++n)
+    if (!calculateTurn(n/1000.f,target,settings,sign,strideMm)) return false;
   return true;
 }
 
@@ -222,6 +263,39 @@ void beginTransition(const float *target) {
   transitionStart=millis(); transitioning=true;
 }
 
+bool startTurnInPlace(float sign, uint32_t ms, float strideMm) {
+  if (!walkReady()) {
+    reply("Capture stand and set ALL 8 direction signs before turning.",false);
+    return true;
+  }
+  if (walking || transitioning || waving || turning) {
+    reply("Stop before starting an in-place turn.",false);
+    return true;
+  }
+  if (ms<300 || ms>8000 || !isfinite(strideMm) ||
+      strideMm<TURN_STRIDE_MIN || strideMm>TURN_STRIDE_MAX) {
+    reply("Use turn 300..8000 ms, stride 5..30 mm.",false);
+    return true;
+  }
+  if (!validateTurnInPlace(legTuning,sign,strideMm)) {
+    reply("Turn gait unreachable; lower turn stride.",false);
+    return true;
+  }
+  float target[SERVO_COUNT];
+  if (!calculateTurn(0,target,legTuning,sign,strideMm)) {
+    reply("Turn target unreachable.",false);
+    return true;
+  }
+  turnSign=sign;
+  turnDurationMs=ms;
+  turnStrideMm=strideMm;
+  turnGaitStart=0;
+  turning=true;
+  beginTransition(target);
+  reply("In-place turn started; stand after "+String(ms)+" ms.");
+  return true;
+}
+
 void updateWave(uint32_t now) {
   const uint32_t elapsed=now-waveStart;
   float target[SERVO_COUNT];
@@ -250,7 +324,7 @@ void updateWave(uint32_t now) {
 
 void updateWalk() {
   uint32_t now=millis();
-  if (now-lastFrame<WALK_FRAME_MS || (!walking && !transitioning && !waving)) return;
+  if (now-lastFrame<WALK_FRAME_MS || (!walking && !transitioning && !waving && !turning)) return;
   lastFrame=now;
   if (waving) { updateWave(now); return; }
   const bool finalTransitionFrame=transitioning && now-transitionStart>=1500;
@@ -258,7 +332,27 @@ void updateWalk() {
   if (transitioning) {
     float t=fminf(1.f,(now-transitionStart)/1500.f), u=smoothStep(t);
     for (uint8_t i=0; i<SERVO_COUNT; ++i) target[i]=fromAngles[i]+u*(toAngles[i]-fromAngles[i]);
-    if (t>=1.f) { transitioning=false; walkPhase=0; phaseUpdatedAt=now; }
+    if (t>=1.f) {
+      transitioning=false; walkPhase=0; phaseUpdatedAt=now;
+      if (turning) turnGaitStart=now;
+    }
+  } else if (turning) {
+    const uint32_t elapsed=now-phaseUpdatedAt;
+    const uint32_t dt=elapsed>40 ? 40 : elapsed;
+    walkPhase=advanceWalkPhase(walkPhase,dt,1.f);
+    phaseUpdatedAt=now;
+    if (now-turnGaitStart>=turnDurationMs) {
+      turning=false;
+      if (buildStandTarget(target)) beginTransition(target);
+      reply("Turn complete; returning to stand.");
+      return;
+    }
+    if (!calculateTurn(walkPhase,target,legTuning,turnSign,turnStrideMm)) {
+      turning=false;
+      if (buildStandTarget(target)) beginTransition(target);
+      reply("Invalid turn target; stopped.",false);
+      return;
+    }
   } else {
     advancePhaseTo(now);
     if (!calculateWalk(walkPhase,target,legTuning,walkDirection,walkTurn,walkTurnGain)) {
@@ -278,6 +372,10 @@ bool startWalk(float direction, float turn) {
   }
   if (waving) {
     reply("Stop the wave first.",false);
+    return true;
+  }
+  if (turning) {
+    reply("Stop the turn first.",false);
     return true;
   }
   if (transitioning) {
@@ -314,7 +412,7 @@ bool startWave() {
     reply("Capture stand and set ALL 8 direction signs before waving.",false);
     return true;
   }
-  if (walking || transitioning) {
+  if (walking || transitioning || turning) {
     reply("Stop before waving.",false);
     return true;
   }
@@ -368,6 +466,8 @@ void walkHelp() {
   reply("walk bias 0.09: straight-line heading trim, -0.4..0.4, positive=left; only when turn target is 0; walk save persists");
   reply("foot offset -5: shift all foot targets in mm, -20..20; negative=backward, positive=forward; stopped only; RAM only");
   reply("wave: raise one leg and wave for ~5.4s; wave leg 1..4 selects FL/FR/RL/RR (default FL); stop cancels");
+  reply("turn left|right [300..8000 ms]: manual in-place turn; stopped only; tune 90 deg by duration");
+  reply("avoid on/off; avoid dist CM; avoid turn left|right; avoid turnms MS; avoid stride MM; avoid max N; avoid status");
   reply("stand record: record stand commands, foot x=0 z=65mm; stand direction ID +1/-1 for ALL 8 joints");
   reply("stand save / stand load: save or load stand and directions; ws: working settings");
   reply("stand: return to stand in 1.5s; walk directions can change while walking; stop: hold pose, next start forward");
@@ -375,12 +475,12 @@ void walkHelp() {
 
 bool calibrationCommand(const String &cmd) {
   if (cmd=="stand load") {
-    if (walking || transitioning || waving) reply("Stop before loading calibration.",false);
+    if (walking || transitioning || waving || turning) reply("Stop before loading calibration.",false);
     else loadWalkCalibration();
     return true;
   }
   if (cmd=="stand record") {
-    if (walking || transitioning || waving) { reply("Stop and position legs first.",false); return true; }
+    if (walking || transitioning || waving || turning) { reply("Stop and position legs first.",false); return true; }
     for (uint8_t i=0;i<SERVO_COUNT;++i) if (!servos[i].attached()) { reply("A servo is not attached.",false); return true; }
     for (uint8_t i=0; i<SERVO_COUNT; ++i) standAngles[i]=commandAngles[i];
     standCaptured=true;
@@ -388,7 +488,7 @@ bool calibrationCommand(const String &cmd) {
     reply("Standing commands captured, not measured; foot offset reset to 0."); return true;
   }
   if (cmd=="stand save") {
-    if (!walkReady() || walking || transitioning || waving) { reply("Need stopped, captured stand and all 8 dir signs.",false); return true; }
+    if (!walkReady() || walking || transitioning || waving || turning) { reply("Need stopped, captured stand and all 8 dir signs.",false); return true; }
     CalibrationProfile profile;
     for (unsigned i=0;i<SERVO_COUNT;++i) {
       profile.angles[i]=standAngles[i]; profile.dirs[i]=jointDirection[i];
@@ -399,7 +499,7 @@ bool calibrationCommand(const String &cmd) {
   long id,d; char extra;
   if (sscanf(cmd.c_str(),"stand direction %ld %ld %c",&id,&d,&extra)==2) {
     if (id<1 || id>SERVO_COUNT || (d!=1 && d!=-1)) reply("Use stand direction ID +1 or -1.",false);
-    else if (walking || transitioning || waving) reply("Stop before changing calibration.",false);
+    else if (walking || transitioning || waving || turning) reply("Stop before changing calibration.",false);
     else { jointDirection[id-1]=d; reply("Direction updated in RAM."); }
     return true;
   }
@@ -408,7 +508,7 @@ bool calibrationCommand(const String &cmd) {
 
 bool gaitSettingsCommand(const String &cmd) {
   if (cmd=="walk save" || cmd=="walk load" || cmd=="walk reset") {
-    if (walking || transitioning || waving) { reply("Stop before changing/saving gait settings.",false); return true; }
+    if (walking || transitioning || waving || turning) { reply("Stop before changing/saving gait settings.",false); return true; }
     if (cmd=="walk load") { bool ok=loadGaitSettings(); reply(ok ? "Gait loaded." : "No valid saved gait; unchanged.",ok); return true; }
     if (cmd=="walk reset") {
       for (auto &v:legTuning) v=LegTuning();
@@ -432,7 +532,7 @@ bool gaitSettingsCommand(const String &cmd) {
         !isfinite(bias) || fabsf(bias)>WALK_BIAS_MAX) {
       reply("Use walk bias -0.4..0.4; positive=left. Use walk save to persist.",false); return true;
     }
-    if (walking || transitioning || waving) { reply("Stop before changing walk bias.",false); return true; }
+    if (walking || transitioning || waving || turning) { reply("Stop before changing walk bias.",false); return true; }
     if (walkTurnGain<.01f) { reply("Set walk turn gain >0 before walk bias.",false); return true; }
     const float previous=walkBias;
     walkBias=bias;
@@ -449,7 +549,7 @@ bool gaitSettingsCommand(const String &cmd) {
         !isfinite(mm) || mm<-WALK_CENTER_MAX || mm>WALK_CENTER_MAX) {
       reply("Use walk center MM (-25..25; negative=gait feet back).",false); return true;
     }
-    if (walking || transitioning || waving) { reply("Stop before changing walk center.",false); return true; }
+    if (walking || transitioning || waving || turning) { reply("Stop before changing walk center.",false); return true; }
     const float previous=walkCenterX;
     walkCenterX=mm;
     if (!validateGait(legTuning,walkDirectionTarget,walkTurnTarget,walkTurnGain)) {
@@ -465,7 +565,7 @@ bool gaitSettingsCommand(const String &cmd) {
         !isfinite(gain) || gain<0.f || gain>TURN_GAIN_MAX) {
       reply("Use walk turn GAIN (0..0.8).",false); return true;
     }
-    if (walking || transitioning || waving) { reply("Stop before changing turn gain.",false); return true; }
+    if (walking || transitioning || waving || turning) { reply("Stop before changing turn gain.",false); return true; }
     const float previous=walkTurnGain;
     walkTurnGain=gain;
     if (!validateGait(legTuning,walkDirectionTarget,walkTurnTarget,walkTurnGain)) {
@@ -479,7 +579,7 @@ bool gaitSettingsCommand(const String &cmd) {
     if (sscanf(cmd.c_str(),"walk set %ld %f %f %f %f %f %c",&leg,&lift,&depth,&stride,&lp,&rp,&tail)!=6 || leg<1 || leg>4) {
       reply("Use walk set LEG LIFT DEPTH STRIDE LIFT_PERCENT LOWER_PERCENT.",false); return true;
     }
-    if (walking || transitioning || waving) { reply("Stop before applying tuning.",false); return true; }
+    if (walking || transitioning || waving || turning) { reply("Stop before applying tuning.",false); return true; }
     LegTuning candidate[4]; for (unsigned i=0;i<4;++i) candidate[i]=legTuning[i];
     auto &v=candidate[leg-1]; v.lift=lift; v.depth=depth; v.stride=stride; v.liftPart=lp/100; v.lowerPart=rp/100;
     if (!validateGait(candidate)) { reply("Rejected: bounds, unreachable geometry or command limits.",false); return true; }
@@ -494,9 +594,9 @@ bool walkCommand(const String &cmd) {
   if (cmd=="ws") {
     Serial.printf("walking=%d standCaptured=%d ready=%d speed=%.2f deadband=%.2f deg nominal support=65mm\n",
                   walking,standCaptured,walkReady(),walkSpeed,walkDeadband);
-    Serial.printf("motion=%s dir=%.2f turn=%.2f gain=%.2f targetDir=%.2f targetTurn=%.2f footOffset=%.1f mm walkCenter=%.1f mm walkBias=%.3f waving=%d waveLeg=%u\n",
+    Serial.printf("motion=%s dir=%.2f turn=%.2f gain=%.2f targetDir=%.2f targetTurn=%.2f footOffset=%.1f mm walkCenter=%.1f mm walkBias=%.3f turning=%d turnMs=%lu waving=%d waveLeg=%u\n",
                   motionName(),walkDirection,walkTurn,walkTurnGain,walkDirectionTarget,walkTurnTarget,walkFootOffsetX,
-                  walkCenterX,walkBias,waving,waveLeg+1);
+                  walkCenterX,walkBias,turning,(unsigned long)turnDurationMs,waving,waveLeg+1);
     for (uint8_t i=0; i<SERVO_COUNT; ++i)
       Serial.printf("%u stand=%d dir=%d\n",i+1,standAngles[i],jointDirection[i]);
     for (uint8_t i=0;i<4;++i) Serial.printf("leg %u lift=%.3f depth=%.3f stride=%.3f lift%%=%.2f lower%%=%.2f\n",
@@ -523,7 +623,7 @@ bool walkCommand(const String &cmd) {
     if (sscanf(cmd.c_str(),"wave leg %ld %c",&id,&tail)!=1 || id<1 || id>4) {
       reply("Use wave leg 1..4: 1 FL, 2 FR, 3 RL, 4 RR. Front uses a 20mm lift.",false); return true;
     }
-    if (walking || transitioning || waving) { reply("Stop before changing the wave leg.",false); return true; }
+    if (walking || transitioning || waving || turning) { reply("Stop before changing the wave leg.",false); return true; }
     waveLeg=id-1;
     reply("Wave leg set to "+String(id)+" ("+(waveLeg<2 ? String("front") : String("rear"))+"); RAM only.");
     return true;
@@ -535,7 +635,7 @@ bool walkCommand(const String &cmd) {
         !isfinite(mm) || mm<-FOOT_OFFSET_MAX || mm>FOOT_OFFSET_MAX) {
       reply("Use foot offset MM (-20..20; negative=backward).",false); return true;
     }
-    if (walking || transitioning || waving) { reply("Stop before changing foot offset.",false); return true; }
+    if (walking || transitioning || waving || turning) { reply("Stop before changing foot offset.",false); return true; }
     const float previous=walkFootOffsetX;
     walkFootOffsetX=mm;
     if (!standOffsetValid() ||

@@ -154,5 +154,39 @@ int main(){
   writeServoAngle(0,82.f,1);
   writeServoAngle(0,82.2f,1);
   assert(servos[0].pulse>priorPulse && commandAngles[0]==82);
-  puts("PASS: shared Serial/HTTP executor, forward/back/turn, bias, greeting wave, arbitrary speeds, independent tuning, calibration isolation, persistence, ownership, heartbeat timeout and unchanged stand");
+
+  // Avoid settings and timed in-place turn.
+  assert(command("avoid dist 20")==200 && avoidDistanceMm==200);
+  assert(command("avoid dist 4")==422 && avoidDistanceMm==200);
+  assert(command("avoid turn right")==200 && avoidTurnSign<0);
+  assert(command("avoid turn left")==200 && avoidTurnSign>0);
+  assert(command("avoid turnms 2000")==200 && avoidTurnMs==2000);
+  assert(command("avoid stride 18")==200 && fabsf(avoidTurnStrideMm-18.f)<1e-6f);
+  assert(command("avoid max 2")==200 && avoidMaxTurns==2);
+  assert(command("avoid on")==200 && avoidEnabled);
+  assert(command("avoid off")==200 && !avoidEnabled);
+  assert(command("turn left 2000")==200 && turning);
+  fakeMillis+=1500; updateWalk(); assert(!transitioning && turning);
+  fakeMillis+=2000; updateWalk(); assert(!turning && transitioning);
+  fakeMillis+=1500; updateWalk(); assert(!transitioning);
+
+  // Only 0..200 mm triggers; -1 is ignored/taken as clear at recheck.
+  usSetMockMm(150);
+  assert(command("avoid on")==200 && avoidEnabled);
+  assert(command("walk")==200 && walking);
+  fakeMillis+=1500; updateWalk();
+  avoidTick(); fakeMillis+=120; avoidTick();
+  assert(!walking && avoidPhase==AVOID_STAND && transitioning);
+  fakeMillis+=1600; updateWalk(); avoidTick();
+  assert(avoidPhase==AVOID_TURN && turning);
+  fakeMillis+=1500; updateWalk();
+  fakeMillis+=2000; updateWalk();
+  assert(!turning && transitioning);
+  fakeMillis+=1500; updateWalk(); avoidTick();
+  assert(avoidPhase==AVOID_RECHECK);
+  usSetMockMm(-1); fakeMillis+=300; avoidTick();
+  assert(walking && avoidPhase==AVOID_IDLE);
+  assert(command("stop")==200 && !walking);
+  assert(command("avoid off")==200 && !avoidEnabled);
+  puts("PASS: shared executor, forward/back/turn, bias, wave, ultrasonic avoid, in-place turn, calibration isolation, persistence and ownership");
 }
