@@ -14,6 +14,8 @@ void writeServoAngle(unsigned joint, float angle, int minChangeUs) {
 }
 
 #include "walk_control.h"
+#include "ultrasonic.h"
+#include "avoid.h"
 
 bool setServo(long id, long angle) {
   // API angle-domain validation only; no extra joint working limits.
@@ -70,6 +72,14 @@ bool executeCommand(String text) {
   if (!text.length() || text.length()>95) { reply("Empty or oversized command.",false); return false; }
   if (text=="s" || text=="list") { printStatus(); reply("Status updated."); return true; }
   if (text=="h" || text=="help") { printHelp(); reply("Help printed; all controls are also on the phone page."); return true; }
+  if (usCommand(text)) return commandOK;
+  if (avoidCommand(text)) return commandOK;
+  // Any manual motion/stop command cancels the current avoid phase (the
+  // avoid on/off switch itself stays as set; use `avoid off` to disable).
+  if (text=="stop" || text=="stand" || text=="walk" || text=="walk back" ||
+      text.startsWith("walk left") || text.startsWith("walk right") ||
+      text.startsWith("walk straight") || text=="init" ||
+      text.startsWith("all ") || text.startsWith("set ")) avoidReset();
   if (walkCommand(text)) return commandOK;
   if (text=="init") { stopWalk(); setAll(INIT_ANGLE); return commandOK; }
   long id,angle; char extra;
@@ -89,6 +99,7 @@ bool executeCommand(String text) {
 
 void setup() {
   Serial.begin(115200);
+  usBegin();
   walkPrefs.begin("quad-walk", false);
   loadWalkCalibration();
   Serial.setTimeout(100);
@@ -113,6 +124,8 @@ void setup() {
 void loop() {
   updatePhoneControl();
   updateWalk();
+  avoidTick();
+  usStreamTick();
   // Bounded nonblocking line input keeps stop responsive during the gait.
   static char buffer[96];
   static uint8_t length = 0;

@@ -44,7 +44,11 @@ void apiReply(int code,const String &message) {
 void releasePhoneControl() { phoneOwner=""; }
 void checkPhoneTimeout() {
   if (phoneOwner.length() && uint32_t(millis()-lastPhoneBeat)>PHONE_TIMEOUT_MS) {
-    if (walking || transitioning) { stopWalk(); reply("Phone heartbeat lost; stopped, holding last pose.",false); }
+    const bool avoidActive=avoidEnabled && avoidPhase!=AVOID_IDLE;
+    if (walking || transitioning || turning || avoidActive) {
+      stopWalk(); avoidReset();
+      reply("Phone heartbeat lost; stopped, holding last pose.",false);
+    }
     releasePhoneControl();
   }
 }
@@ -70,6 +74,13 @@ void phoneState() {
     ",\"motion\":"+jsonQuote(motionName())+
     ",\"turnGain\":"+String(walkTurnGain,3)+",\"footOffset\":"+String(walkFootOffsetX,1)+
     ",\"walkCenter\":"+String(walkCenterX,1)+",\"walkBias\":"+String(walkBias,3)+
+    ",\"turning\":"+(turning ? "true" : "false")+
+    ",\"avoid\":"+(avoidEnabled ? "true" : "false")+
+    ",\"avoidPhase\":"+jsonQuote(avoidPhaseName())+
+    ",\"avoidDist\":"+String(avoidDistanceCm)+",\"avoidTurn\":"+String(avoidTurnSign>0 ? "left" : "right")+
+    ",\"avoidTurnMs\":"+String((unsigned long)avoidTurnMs)+",\"avoidMax\":"+String(avoidMaxTurns)+
+    ",\"avoidTurns\":"+String(avoidTurns)+
+    ",\"usMm\":"+String((int)usDistanceMm)+
     ",\"waving\":"+(waving ? "true" : "false")+",\"waveLeg\":"+String(waveLeg+1)+
     ",\"direction\":"+String(walkDirectionTarget,3)+
     ",\"turn\":"+String(walkTurnTarget,3)+",\"message\":"+jsonQuote(commandMessage)+

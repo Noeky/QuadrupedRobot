@@ -144,6 +144,54 @@ walk
 
 `walk bias` 也是开环补偿；如果右偏随电量/地面变化很大，固定 bias 只能近似，最终仍需 IMU 闭环。
 
+## 前置 HC-SR04 超声（串口读数）
+
+当前接入**朝前**的 HC-SR04，并已启用 `avoid` 自动避障。
+
+- 接线：VCC=5V，GND 与 ESP32/舵机共地；**Trig=GPIO33**；**Echo=GPIO27**，Echo 是 5V，必须经分压（1kΩ 串联 + 2kΩ 到 GND）后再进 GPIO27，不能直连。
+- 驱动在 `ultrasonic.h`：FreeRTOS 任务 10Hz 采样，`pulseIn` 不阻塞 50Hz 步态；3 次中值滤波；无回波为 -1。
+- 串口 115200 默认以 5Hz 打印：
+
+```text
+US,123456,203
+```
+
+单位 mm；`US,millis,-1` 表示超时/无回波。
+
+- 命令：`us` 或 `dist` 立即打印一次；`us stream off` 关闭周期输出；`us stream on` 打开；`us stream` 查询状态。
+
+上电测试：把机器人朝前，手掌/纸板放在约 10、20、30cm 处，看串口 mm 是否跟随；如果一直 -1，先查 Echo 分压、5V、共地和 Trig 33。传感器波束不要打到自己的腿/地面；HC-SR04 最小盲区约 2cm。
+
+### 自动避障 `avoid`
+
+开启后，`walk`/前进中每 100ms 检查一次；**只有 0～阈值mm 的有效读数会触发**，`-1` 无回波不触发。按你的选择，复测时遇到 `-1` 会当作“已清空”并恢复前进——如果传感器失效，存在盲走风险，实机测试请保持安全距离。
+
+流程：
+
+1. 连续 2 次有效读数在 0～20cm（默认）→ `stop`、回站姿；
+2. 站姿 1.6s → 原地转（默认左转，`turnms=2000`，`stride=18mm`）；
+3. 转完回站姿 → 停 250ms 复测；
+4. 仍 ≤20cm 再转，最多 `avoid max` 次（默认 8）；清空后自动 `walk` 前进。
+
+原地转是左右腿反向 signed stride、开环定时；**没有 IMU，90° 必须靠 `turnms` 标定**。每次含 1.5s 进/出站姿，实际总时间比 `turnms` 多约 3s。
+
+```text
+stop
+turn left 2000       # 手动原地左转 2s，量实际角度；90°不够就加
+turn right 2000
+avoid on
+avoid off
+avoid dist 20        # cm，5..100
+avoid turn left      # 默认左
+avoid turn right
+avoid turnms 2000    # 300..8000
+avoid stride 18      # 5..30mm，转得急可加大
+avoid max 8
+avoid status
+```
+
+手动 `stop`/`stand`/`walk`/`set`/`all` 会取消当前避障阶段，但 `avoid` 开关仍保持；要彻底关闭发 `avoid off`。
+
 ## 步态与标定原理
 
 `walk` 采用对角步态。**左前＋右后**与**右前＋左后**交替抬脚，每腿摆动与支撑各占周期的一半。换撑时，两组足端轨迹都经过各自的落脚平面。相位安排参考 [Sesame Robot 的前进实现](https://github.com/dorianborian/sesame-robot/blob/main/firmware/movement-sequences.h)，命令角由 R3 自己的逆解和标定计算。
@@ -185,6 +233,14 @@ walk
 |`foot offset -3`|站立和步态足端统一前后偏移，mm，-20～20，负=后移；停止时应用，仅RAM|
 |`wave`|抬一条腿摆动打招呼约5.4秒；默认左前，支撑腿用当前步态支撑高度；停止/站立可取消|
 |`wave leg 4`|切换打招呼腿1～4（FL/FR/RL/RR）；前腿20mm，后腿25mm；停止时，仅RAM|
+|`turn left 2000` / `turn right 2000`|手动原地转，时长ms可调；停止时；用于标定90°|
+|`avoid on` / `avoid off`|开启/关闭前向20cm自动避障|
+|`avoid dist 20`|避障阈值cm，5～100；只对0～阈值的有效读数反应|
+|`avoid turn left` / `avoid turn right`|避障旋转方向，默认左|
+|`avoid turnms 2000`|每次原地转的时长ms，300～8000；需实机标定90°|
+|`avoid stride 18`|原地转的左右反向步长mm，5～30|
+|`avoid max 8`|最多连续转次数，1～12|
+|`avoid status`|打印避障状态、阈值、方向、时长、超声mm|
 |`stop`|取消步态及插值，保持最后命令，不落脚、不断电；下一次启动方向重置为前进直行|
 |`stand`|1.5秒回当前标定站姿|
 |`walk speed 0.731`|任意小数速度倍率，当前边界0.05～4|
@@ -198,7 +254,7 @@ walk
 |`stand save`|停止且站姿、方向、attach完整时保存标定|
 |`stand load`|停止时载入标定|
 |`s` / `list`|接线、attach和最后命令角|
-|`ws`|标定、方向、motion/转向、foot offset、walk center、walk bias、wave、速度、四腿参数及配置状态|
+|`ws`|标定、方向、motion/转向、turning、foot offset、walk center、walk bias、wave、速度、四腿参数及配置状态；避障详情用 `avoid status`|
 |`h` / `help`|帮助|
 
 已有前进、后退、左转、右转；仍没有姿态反馈、足底接触反馈或自动避障。转向是开环差速，不保证直线或固定半径。HC-SR04尚未配置接线及测距控制。单独`90`或`+`不是有效命令。

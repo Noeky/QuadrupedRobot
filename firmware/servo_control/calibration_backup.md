@@ -14,6 +14,8 @@
 
 `walk center MM` 只平移步态足端前后中心，不移动 stand；它由 `walk save` 写入 `quad-gait` 的新键 `center`。旧步态存档没有该键时按 0 读取；`walk reset` 把它归 0。原 `legs-v2` 结构不变。
 
+`avoid` 的阈值、方向、时长、stride、max 都是 RAM-only，不写存档；`avoid on/off` 也只影响当前运行。`turn left/right` 的时长同样只用于本次/避障后续，默认 2s 需按实机 90° 标定。
+
 `walk bias X` 是直行偏置（正=左），只作用于 turn 目标为 0 的直行；由 `walk save` 写入 `quad-gait` 的新键 `bias`，旧存档按 0 读取；`walk reset` 归 0。你验证过的 0.09 可以直接作为 `bias` 保存，`walk turn` 可恢复为 0.5 用于真正的左右转。
 
 ## 参数存放位置

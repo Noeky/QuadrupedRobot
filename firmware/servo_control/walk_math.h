@@ -68,16 +68,13 @@ inline float stanceProgress(float t) {
 // 28 mm stride, 15 mm lift, nominal 4 second cycle; stance foot travels backward.
 // direction=+1 forward, -1 backward. turn=+1 left, -1 right; turnGain scales
 // the left/right stride difference. The base LegTuning is never modified.
-inline void footPath(float phase, unsigned leg, float &x, float &z,
-                     const LegTuning &v=LegTuning(),
-                     float direction=1.f, float turn=0.f, float turnGain=.5f) {
-  // Sesame-inspired exchange: left-front/right-rear, then right-front/left-rear.
+// Draw the swing/stance path for an already-chosen (possibly signed) stride.
+// Signed stride is used by the in-place turn: left/right sides get opposite
+// signs, so the average forward push cancels and the body yaws.
+inline void footPathForStride(float phase, unsigned leg, float &x, float &z,
+                              const LegTuning &v, float stride) {
   const float diagonalOffset[4] = {0.f, .5f, .5f, 0.f};
-  const float side[4] = {1.f, -1.f, 1.f, -1.f}; // FL, FR, RL, RR: left +
   constexpr float swing = .5f;
-  const float t = turn * TURN_SIGN;
-  float stride = v.stride * (1.f - t * direction * side[leg] * turnGain);
-  stride = fmaxf(0.f, fminf(MAX_STRIDE_MM, stride));
   float p = phase - diagonalOffset[leg];
   p -= floorf(p);
   z = SUPPORT_HEIGHT_MM+v.depth;
@@ -98,5 +95,16 @@ inline void footPath(float phase, unsigned leg, float &x, float &z,
   } else {
     x = stride/2 - stride*stanceProgress((p-swing)/(1.f-swing));
   }
+}
+
+inline void footPath(float phase, unsigned leg, float &x, float &z,
+                     const LegTuning &v=LegTuning(),
+                     float direction=1.f, float turn=0.f, float turnGain=.5f) {
+  // Sesame-inspired exchange: left-front/right-rear, then right-front/left-rear.
+  const float side[4] = {1.f, -1.f, 1.f, -1.f}; // FL, FR, RL, RR: left +
+  const float t = turn * TURN_SIGN;
+  float stride = v.stride * (1.f - t * direction * side[leg] * turnGain);
+  stride = fmaxf(0.f, fminf(MAX_STRIDE_MM, stride));
+  footPathForStride(phase,leg,x,z,v,stride);
   x *= direction;
 }
